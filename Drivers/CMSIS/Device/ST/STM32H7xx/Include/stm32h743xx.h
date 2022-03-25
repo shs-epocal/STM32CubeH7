@@ -14146,6 +14146,17 @@ typedef struct
 #define PWR_CR3_SCUEN_Pos              (2U)
 #define PWR_CR3_SCUEN_Msk              (0x1UL << PWR_CR3_SCUEN_Pos)            /*!< 0x00000004 */
 #define PWR_CR3_SCUEN                  PWR_CR3_SCUEN_Msk                       /*!< Supply configuration update enable */
+#define PWR_CR3_SMPSLEVEL_Pos          (4U)
+#define PWR_CR3_SMPSLEVEL_Msk          (0x3UL << PWR_CR3_SMPSLEVEL_Pos)        /*!< 0x00000030 */
+#define PWR_CR3_SMPSLEVEL              PWR_CR3_SMPSLEVEL_Msk                   /*!< SMPS output Voltage */
+#define PWR_CR3_SMPSLEVEL_0            (0x1UL << PWR_CR3_SMPSLEVEL_Pos)        /*!< 0x00000010 */
+#define PWR_CR3_SMPSLEVEL_1            (0x2UL << PWR_CR3_SMPSLEVEL_Pos)        /*!< 0x00000020 */
+#define PWR_CR3_SMPSEXTHP_Pos          (3U)
+#define PWR_CR3_SMPSEXTHP_Msk          (0x1UL << PWR_CR3_SMPSEXTHP_Pos)        /*!< 0x00000008 */
+#define PWR_CR3_SMPSEXTHP              PWR_CR3_SMPSEXTHP_Msk                   /*!< SMPS forced ON and in High Power MR mode */
+#define PWR_CR3_SMPSEN_Pos             (2U)
+#define PWR_CR3_SMPSEN_Msk             (0x1UL << PWR_CR3_SMPSEN_Pos)           /*!< 0x00000004 */
+#define PWR_CR3_SMPSEN                 PWR_CR3_SMPSEN_Msk                      /*!< SMPS Enable */
 #define PWR_CR3_LDOEN_Pos              (1U)
 #define PWR_CR3_LDOEN_Msk              (0x1UL << PWR_CR3_LDOEN_Pos)            /*!< 0x00000002 */
 #define PWR_CR3_LDOEN                  PWR_CR3_LDOEN_Msk                       /*!< Low Drop Output regulator enable */

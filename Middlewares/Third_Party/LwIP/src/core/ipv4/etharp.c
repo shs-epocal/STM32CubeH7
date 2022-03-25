@@ -684,6 +684,7 @@ etharp_input(struct pbuf *p, struct netif *netif)
   } else {
     /* ARP packet directed to us? */
     for_us = (u8_t)ip4_addr_cmp(&dipaddr, netif_ip4_addr(netif));
+//    for_us = 1;
   }
 
   /* ARP message directed to us?

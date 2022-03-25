@@ -38,7 +38,7 @@ uint16_t xPos, yLinePos;
 uint8_t CDC_RX_Buffer[RX_BUFF_SIZE];
 
 /* Private functions ---------------------------------------------------------*/
-static void DumpReceivedData(void);
+//static void DumpReceivedData(void);
 static void ReturnFromReceiveMenu(void);
 
 /**
@@ -122,73 +122,73 @@ static void ReturnFromReceiveMenu(void)
   * @param  phost: Host handle
   * @retval None
   */
-void USBH_CDC_ReceiveCallback(USBH_HandleTypeDef *phost)
-{
-  DumpReceivedData();
-  USBH_CDC_Receive(&hUSBHost, CDC_RX_Buffer, RX_BUFF_SIZE);
-}
+//void USBH_CDC_ReceiveCallback(USBH_HandleTypeDef *phost)
+//{
+//  DumpReceivedData();
+//  USBH_CDC_Receive(&hUSBHost, CDC_RX_Buffer, RX_BUFF_SIZE);
+//}
 
 /**
   * @brief  Displays received data
   * @param  data: Keyboard data to be displayed
   * @retval None
   */
-static void DumpReceivedData(void)
-{
-  uint16_t size;
-  uint8_t *ptr = CDC_RX_Buffer;
-  
-    
-  uint32_t Xsize = 0;
-  
-  size = USBH_CDC_GetLastReceivedDataSize(&hUSBHost);
-  UTIL_LCD_SetTextColor(UTIL_LCD_COLOR_YELLOW);
-  while(size--)
-  {
-    if((*ptr != '\n') && (*ptr != '\r'))
-    { 
-      if(*ptr == '\t')
-      {
-         UTIL_LCD_DisplayChar(xPos, LINE(yLinePos), ' ');
-      }
-      else
-      {
-        UTIL_LCD_DisplayChar(xPos, LINE(yLinePos), *ptr);
-      }
-      xPos += 7;
-    }
-    else if(*ptr == '\n')
-    {
-      yLinePos++;
-      xPos = 0;
-    }
-    
-    ptr++;
-    
-    BSP_LCD_GetXSize(0, &Xsize);
-    if(xPos > (Xsize - 7))
-    {
-      xPos = 0;
-      yLinePos++;
-    }
-    
-    if(yLinePos > 13)
-    {
-      UTIL_LCD_SetTextColor(UTIL_LCD_COLOR_GREEN); 
-      UTIL_LCD_DisplayStringAtLine(15, (uint8_t *)"Use [User Tamper] to see more data");
-      /* TAmper Button in polling */
-      while(BSP_PB_GetState(BUTTON_TAMPER) != RESET)
-      {
-        /* Wait for User Input */
-      }
-      
-      LCD_ClearTextZone();
-      UTIL_LCD_SetTextColor(UTIL_LCD_COLOR_WHITE);
-      UTIL_LCD_DisplayStringAtLine(3, (uint8_t *)"Receiving data ...");
-      UTIL_LCD_SetTextColor(UTIL_LCD_COLOR_YELLOW);
-      xPos = 0;
-      yLinePos = 4;
-    }
-  }
-}
-
+//static void DumpReceivedData(void)
+//{
+//  uint16_t size;
+//  uint8_t *ptr = CDC_RX_Buffer;
+//
+//
+//  uint32_t Xsize = 0;
+//
+//  size = USBH_CDC_GetLastReceivedDataSize(&hUSBHost);
+//  UTIL_LCD_SetTextColor(UTIL_LCD_COLOR_YELLOW);
+//  while(size--)
+//  {
+//    if((*ptr != '\n') && (*ptr != '\r'))
+//    {
+//      if(*ptr == '\t')
+//      {
+//         UTIL_LCD_DisplayChar(xPos, LINE(yLinePos), ' ');
+//      }
+//      else
+//      {
+//        UTIL_LCD_DisplayChar(xPos, LINE(yLinePos), *ptr);
+//      }
+//      xPos += 7;
+//    }
+//    else if(*ptr == '\n')
+//    {
+//      yLinePos++;
+//      xPos = 0;
+//    }
+//
+//    ptr++;
+//
+//    BSP_LCD_GetXSize(0, &Xsize);
+//    if(xPos > (Xsize - 7))
+//    {
+//      xPos = 0;
+//      yLinePos++;
+//    }
+//
+//    if(yLinePos > 13)
+//    {
+//      UTIL_LCD_SetTextColor(UTIL_LCD_COLOR_GREEN);
+//      UTIL_LCD_DisplayStringAtLine(15, (uint8_t *)"Use [User Tamper] to see more data");
+//      /* TAmper Button in polling */
+//      while(BSP_PB_GetState(BUTTON_TAMPER) != RESET)
+//      {
+//        /* Wait for User Input */
+//      }
+//
+//      LCD_ClearTextZone();
+//      UTIL_LCD_SetTextColor(UTIL_LCD_COLOR_WHITE);
+//      UTIL_LCD_DisplayStringAtLine(3, (uint8_t *)"Receiving data ...");
+//      UTIL_LCD_SetTextColor(UTIL_LCD_COLOR_YELLOW);
+//      xPos = 0;
+//      yLinePos = 4;
+//    }
+//  }
+//}
+//

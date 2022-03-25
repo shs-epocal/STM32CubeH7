@@ -28,12 +28,14 @@
 #include "stm32h747i_eval_sd.h"
 #include "stm32h747i_eval_sd.h"
 #include "usbh_cdc.h"
+#include "usbh_cdc-ecm.h"
 #include "lcd.h"
 #include "ff_gen_drv.h"
 #include "sd_diskio.h"
 #include "lcd_trace.h"
 #include "stm32_lcd.h"
 #include "utilities_conf.h"
+#include "lwipopts.h"
 
 
 /* Exported constants --------------------------------------------------------*/
@@ -133,6 +135,30 @@ extern FILELIST_FileTypeDef FileList;
 extern uint8_t *DEMO_SEND_menu[];
 
 /* Exported constants --------------------------------------------------------*/
+#define DEST_IP_ADDR0   ((uint8_t)192U)
+#define DEST_IP_ADDR1   ((uint8_t)168U)
+#define DEST_IP_ADDR2   ((uint8_t)0U)
+#define DEST_IP_ADDR3   ((uint8_t)102U)
+
+#define DEST_PORT       ((uint16_t)8080U)
+
+/*Static IP ADDRESS: IP_ADDR0.IP_ADDR1.IP_ADDR2.IP_ADDR3 */
+#define IP_ADDR0   ((uint8_t) 192U)
+#define IP_ADDR1   ((uint8_t) 168U)
+#define IP_ADDR2   ((uint8_t) 0U)
+#define IP_ADDR3   ((uint8_t) 108U)
+
+/*NETMASK*/
+#define NETMASK_ADDR0   ((uint8_t) 255U)
+#define NETMASK_ADDR1   ((uint8_t) 255U)
+#define NETMASK_ADDR2   ((uint8_t) 255U)
+#define NETMASK_ADDR3   ((uint8_t) 0U)
+
+/*Gateway Address*/
+#define GW_ADDR0   ((uint8_t) 192U)
+#define GW_ADDR1   ((uint8_t) 168U)
+#define GW_ADDR2   ((uint8_t) 0U)
+#define GW_ADDR3   ((uint8_t) 1U)
 /* Private define ------------------------------------------------------------*/
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */

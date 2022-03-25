@@ -408,7 +408,7 @@ extern struct netif *netif_list;
 /** The default network interface. */
 extern struct netif *netif_default;
 
-void netif_init(void);
+//void netif_init(void);
 
 struct netif *netif_add_noaddr(struct netif *netif, void *state, netif_init_fn init, netif_input_fn input);
 

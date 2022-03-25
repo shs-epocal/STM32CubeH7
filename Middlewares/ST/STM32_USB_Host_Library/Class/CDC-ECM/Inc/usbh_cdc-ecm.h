@@ -1,0 +1,243 @@
+/**
+  ******************************************************************************
+  * @file    usbh_cdc-ecms.h
+  * @author  MCD Application Team
+  * @brief   This file contains all the prototypes for the usbh_cdc-ecm.c
+  ******************************************************************************
+  * @attention
+  *
+  * <h2><center>&copy; Copyright (c) 2015 STMicroelectronics.
+  * All rights reserved.</center></h2>
+  *
+  * This software component is licensed by ST under Ultimate Liberty license
+  * SLA0044, the "License"; You may not use this file except in compliance with
+  * the License. You may obtain a copy of the License at:
+  *                      www.st.com/SLA0044
+  *
+  ******************************************************************************
+  */
+
+/* Define to prevent recursive  ----------------------------------------------*/
+#ifndef __USBH_CDC_ECM_H
+#define __USBH_CDC_ECM_H
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/* Includes ------------------------------------------------------------------*/
+#include "usbh_core.h"
+#include "usbh_cdc.h"
+
+#define RTL8152_REQT_READ		0xc0
+#define RTL8152_REQT_WRITE		0x40
+#define RTL8152_REQ_GET_REGS		0x05
+#define RTL8152_REQ_SET_REGS		0x05
+
+#define BYTE_EN_DWORD			0xff
+#define BYTE_EN_WORD			0x33
+#define BYTE_EN_BYTE			0x11
+#define BYTE_EN_SIX_BYTES		0x3f
+#define BYTE_EN_START_MASK		0x0f
+#define BYTE_EN_END_MASK		0xf0
+
+#define MCU_TYPE_PLA			0x0100
+
+#define VENDOR_ID_REALTEK		0x0bda
+#define LTM_ENABLE				0x32
+#define SET_ISOCH_DELAY         0x31
+/* Define generic CDC_ECM equivalences.  */
+#define UX_DEVICE_CLASS_CDC_ECM_CLASS_COMMUNICATION_CONTROL                 0x02
+#define UX_DEVICE_CLASS_CDC_ECM_SUBCLASS_COMMUNICATION_CONTROL              0x06
+#define UX_DEVICE_CLASS_CDC_ECM_CLASS_COMMUNICATION_DATA                    0x0A
+#define UX_DEVICE_CLASS_CDC_ECM_NEW_INTERRUPT_EVENT                         0x01
+#define UX_DEVICE_CLASS_CDC_ECM_NEW_BULKOUT_EVENT                           0x02
+#define UX_DEVICE_CLASS_CDC_ECM_NEW_BULKIN_EVENT                            0x04
+#define UX_DEVICE_CLASS_CDC_ECM_NEW_DEVICE_STATE_CHANGE_EVENT               0x08
+#define UX_DEVICE_CLASS_CDC_ECM_NETWORK_NOTIFICATION_EVENT                  0x10
+#define UX_DEVICE_CLASS_CDC_ECM_INTERRUPT_RESPONSE_LENGTH                   8
+#define UX_DEVICE_CLASS_CDC_ECM_MAX_CONTROL_RESPONSE_LENGTH                 256
+#define UX_DEVICE_CLASS_CDC_ECM_INTERRUPT_RESPONSE_AVAILABLE_FLAG           1
+#define UX_DEVICE_CLASS_CDC_ECM_BASE_IP_ADDRESS                             0xC0A80001
+#define UX_DEVICE_CLASS_CDC_ECM_BASE_IP_MASK                                0xFFFFFF00
+#define UX_DEVICE_CLASS_CDC_ECM_MAX_MTU                                     1518
+#define UX_DEVICE_CLASS_CDC_ECM_ETHERNET_IP                                 0x0800
+#define UX_DEVICE_CLASS_CDC_ECM_ETHERNET_ARP                                0x0806
+#define UX_DEVICE_CLASS_CDC_ECM_ETHERNET_RARP                               0x8035
+#define UX_DEVICE_CLASS_CDC_ECM_ETHERNET_PACKET_SIZE                        1536
+
+/* Define LINK statess.  */
+#define UX_DEVICE_CLASS_CDC_ECM_LINK_STATE_DOWN                             0
+#define UX_DEVICE_CLASS_CDC_ECM_LINK_STATE_UP                               1
+#define UX_DEVICE_CLASS_CDC_ECM_LINK_STATE_PENDING_UP                       2
+#define UX_DEVICE_CLASS_CDC_ECM_LINK_STATE_PENDING_DOWN                     3
+
+/* States for CDC State Machine */
+typedef enum
+{
+  CDC_ECM_IDLE = 0U,
+  CDC_ECM_SEND_DATA,
+  CDC_ECM_SEND_DATA_WAIT,
+  CDC_ECM_RECEIVE_DATA,
+  CDC_ECM_RECEIVE_DATA_WAIT,
+  CDC_ECM_STOP,
+  /*operations that should be performed:
+   * listen to notifications on interrupt endpoint
+   * respond to notifications appropriately
+   * - NETWORK_CONNECTION 00h
+   * - RESPONSE_AVAILABLE 01h
+   * - CONNECTION_SPEED_CHANGE 2Ah*/
+}
+CDC_ECM_DataStateTypeDef;
+
+typedef enum
+{
+  CDC_ECM_IDLE_STATE = 0U,
+  CDC_ECM_SET_ISOCH_DELAY,
+  CDC_ECM_SET_FEATURE_LTM_ENABLE,
+  CDC_ECM_GET_STRING_DESCRIPTOR,
+  CDC_ECM_SET_ALT_INTERFACE,
+  CDC_ECM_SET_ETH_PACKET_FILTER,
+  CDC_ECM_LISTEN_NOTIFICATIONS,
+//  CDC_ECM_TRANSFER_DATA,
+//  CDC_ECM_SETTING_UP,
+//  CDC_ECM_SET_ETH_PACKET_FILTER,
+//  CDC_ECM_GET_ETH_PWR_MGT_PTRN,
+//  CDC_ECM_SET_ETH_PWR_MGT_PTRN,
+//  CDC_ECM_SET_ETH_MULTICAST_FILTERS,
+//  CDC_ECM_GET_ETH_STATISTIC,
+//  CDC_ECM_LISTEN_NOTIFICATIONS,
+//  CDC_ECM_SEND_ENCAPSULATED_COMMAND,
+//  CDC_ECM_GET_ENCAPSULATED_RESPONSE,
+  CDC_ECM_TRANSFER_DATA,
+  CDC_ECM_CONTINUE_FOREVER,
+  CDC_ECM_ERROR_STATE,
+}
+CDC_ECM_StateTypeDef;
+
+typedef enum
+{
+  CDC_ECM_APP_IDLE = 0,
+  CDC_ECM_APP_LINKED,
+  CDC_ECM_APP_WAITING,
+}CDC_ECM_APP_State;
+
+typedef struct _EthernetNetworkingFunctionalDescriptor
+{
+  uint8_t    bLength;            /*Size of this functional descriptor, in bytes.*/
+  uint8_t    bDescriptorType;    /*CS_INTERFACE (0x24)*/
+  uint8_t    bDescriptorSubType; /* Call Management functional descriptor subtype*/
+  uint8_t    iMACAddress;
+  uint32_t   bmEthernetStatistics;
+  uint16_t   wMaxSegmentSize;
+  uint16_t   wNumberMCFilters;
+  uint8_t    bNumberPowerFilters;
+}
+CDC_EthernetNetworkingFuncDesc_TypeDef;
+
+typedef struct _USBH_CDC_ECM_InterfaceDesc
+{
+  CDC_HeaderFuncDesc_TypeDef             CDC_HeaderFuncDesc;
+  CDC_EthernetNetworkingFuncDesc_TypeDef CDC_EthernetNetworkingFuncDesc;
+  CDC_UnionFuncDesc_TypeDef              CDC_UnionFuncDesc;
+}
+CDC_ECM_InterfaceDesc_Typedef;
+
+/* Structure for CDC process */
+typedef struct _CDC_ECM_Process
+{
+  CDC_CommItfTypedef                 CommItf;
+  CDC_DataItfTypedef                 DataItf;
+  uint8_t                           *pTxData;
+  uint8_t                           *pRxData;
+  uint8_t                           *pNotificationData;
+  uint32_t                           TxDataLength;
+  uint32_t                           RxDataLength;
+  uint32_t                           NotificationDataLength;
+  uint8_t                            NotificationInterval;
+  CDC_ECM_InterfaceDesc_Typedef      CDC_Desc;
+  CDC_ECM_StateTypeDef               state;
+  CDC_ECM_StateTypeDef               next_state;
+//  uint8_t                           *eth_stat_data;
+//  uint8_t                           *eth_pwrmgtptrn_data;
+//  uint8_t                           *no_res_buf;
+  CDC_ECM_DataStateTypeDef           data_tx_state;
+  CDC_ECM_DataStateTypeDef           data_rx_state;
+  CDC_ECM_DataStateTypeDef           data_notification_state;
+  uint8_t                            Rx_Poll;
+  uint8_t                            string_desc_index;
+  uint16_t                           string_desc_len;
+  uint16_t                           eth_packet_filter;
+}
+CDC_ECM_HandleTypeDef;
+
+/** @defgroup USBH_CDC_CORE_Exported_Variables
+* @{
+*/
+extern USBH_ClassTypeDef  CDC_ECM_Class;
+#define USBH_CDC_ECM_CLASS    &CDC_ECM_Class
+
+/**
+* @}
+*/
+
+/** @defgroup USBH_CDC_CORE_Exported_FunctionsPrototype
+* @{
+*/
+
+USBH_StatusTypeDef  USBH_CDC_ECM_SetLineCoding(USBH_HandleTypeDef *phost,
+                                           CDC_LineCodingTypeDef *linecoding);
+
+USBH_StatusTypeDef  USBH_CDC_ECM_GetLineCoding(USBH_HandleTypeDef *phost,
+                                           CDC_LineCodingTypeDef *linecoding);
+
+USBH_StatusTypeDef  USBH_CDC_ECM_Transmit(USBH_HandleTypeDef *phost,
+                                      uint8_t *pbuff,
+                                      uint32_t length);
+
+USBH_StatusTypeDef  USBH_CDC_ECM_Receive(USBH_HandleTypeDef *phost,
+                                     uint8_t *pbuff,
+                                     uint32_t length);
+USBH_StatusTypeDef USBH_CDC_ECM_NotificationReceive(USBH_HandleTypeDef *phost,
+                                     uint8_t *pbuff,
+                                     uint32_t length);
+
+
+uint16_t            USBH_CDC_ECM_GetLastReceivedDataSize(USBH_HandleTypeDef *phost);
+uint16_t            USBH_CDC_ECM_GetLastReceivedDataSizeNoti(USBH_HandleTypeDef *phost);
+
+USBH_StatusTypeDef  USBH_CDC_ECM_Stop(USBH_HandleTypeDef *phost);
+
+void USBH_CDC_ECM_LineCodingChanged(USBH_HandleTypeDef *phost);
+
+void USBH_CDC_ECM_TransmitCallback(USBH_HandleTypeDef *phost);
+
+void USBH_CDC_ECM_ReceiveCallback(USBH_HandleTypeDef *phost);
+
+/**
+* @}
+*/
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* __USBH_CDC_H */
+
+/**
+* @}
+*/
+
+/**
+* @}
+*/
+
+/**
+* @}
+*/
+
+/**
+* @}
+*/
+/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
+

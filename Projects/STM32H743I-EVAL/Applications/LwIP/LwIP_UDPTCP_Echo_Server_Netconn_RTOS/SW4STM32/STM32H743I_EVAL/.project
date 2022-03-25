@@ -20,9 +20,9 @@
 	</buildSpec>
 	<natures>
 		<nature>org.eclipse.cdt.core.cnature</nature>
-		<nature>org.eclipse.cdt.managedbuilder.core.managedBuildNature</nature>
 		<nature>org.eclipse.cdt.managedbuilder.core.ScannerConfigNature</nature>
-		<nature>fr.ac6.mcu.ide.core.MCUProjectNature</nature>
+		<nature>com.st.stm32cube.ide.mcu.MCUSW4STM32ConvertedProjectNature</nature>
+		<nature>org.eclipse.cdt.managedbuilder.core.managedBuildNature</nature>
 	</natures>
 	<linkedResources>
 		<link>
@@ -76,14 +76,14 @@
 			<locationURI>PARENT-2-PROJECT_LOC/Src/udpecho.c</locationURI>
 		</link>
 		<link>
-			<name>Application/Utilities/stm32_lcd.c</name>
-			<type>1</type>
-			<locationURI>PARENT-7-PROJECT_LOC/Utilities/lcd/stm32_lcd.c</locationURI>
-		</link>
-		<link>
 			<name>Application/Utilities/lcd_trace.c</name>
 			<type>1</type>
 			<locationURI>PARENT-7-PROJECT_LOC/Utilities/Lcd_Trace/lcd_trace.c</locationURI>
+		</link>
+		<link>
+			<name>Application/Utilities/stm32_lcd.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Utilities/lcd/stm32_lcd.c</locationURI>
 		</link>
 		<link>
 			<name>Drivers/CMSIS/system_stm32h7xx.c</name>
@@ -241,11 +241,6 @@
 			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/Third_Party/FreeRTOS/Source/timers.c</locationURI>
 		</link>
 		<link>
-			<name>Drivers/BSP/Components/lan8742.c</name>
-			<type>1</type>
-			<locationURI>PARENT-7-PROJECT_LOC/Drivers/BSP/Components/lan8742/lan8742.c</locationURI>
-		</link>
-		<link>
 			<name>Drivers/BSP/Components/exc7200.c</name>
 			<type>1</type>
 			<locationURI>PARENT-7-PROJECT_LOC/Drivers/BSP/Components/exc7200/exc7200.c</locationURI>
@@ -261,14 +256,9 @@
 			<locationURI>PARENT-7-PROJECT_LOC/Drivers/BSP/Components/is42s32800g/is42s32800g.c</locationURI>
 		</link>
 		<link>
-			<name>Drivers/BSP/Components/ts3510.c</name>
+			<name>Drivers/BSP/Components/lan8742.c</name>
 			<type>1</type>
-			<locationURI>PARENT-7-PROJECT_LOC/Drivers/BSP/Components/ts3510/ts3510.c</locationURI>
-		</link>
-		<link>
-			<name>Drivers/BSP/Components/ts3510_reg.c</name>
-			<type>1</type>
-			<locationURI>PARENT-7-PROJECT_LOC/Drivers/BSP/Components/ts3510/ts3510_reg.c</locationURI>
+			<locationURI>PARENT-7-PROJECT_LOC/Drivers/BSP/Components/lan8742/lan8742.c</locationURI>
 		</link>
 		<link>
 			<name>Drivers/BSP/Components/mfxstm32l152.c</name>
@@ -281,19 +271,29 @@
 			<locationURI>PARENT-7-PROJECT_LOC/Drivers/BSP/Components/stmpe811/stmpe811.c</locationURI>
 		</link>
 		<link>
+			<name>Drivers/BSP/Components/ts3510.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Drivers/BSP/Components/ts3510/ts3510.c</locationURI>
+		</link>
+		<link>
+			<name>Drivers/BSP/Components/ts3510_reg.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Drivers/BSP/Components/ts3510/ts3510_reg.c</locationURI>
+		</link>
+		<link>
 			<name>Drivers/BSP/STM32H743I_EVAL/stm32h743i_eval.c</name>
 			<type>1</type>
 			<locationURI>PARENT-7-PROJECT_LOC/Drivers/BSP/STM32H743I-EVAL/stm32h743i_eval.c</locationURI>
 		</link>
 		<link>
-			<name>Drivers/BSP/STM32H743I_EVAL/stm32h743i_eval_io.c</name>
-			<type>1</type>
-			<locationURI>PARENT-7-PROJECT_LOC/Drivers/BSP/STM32H743I-EVAL/stm32h743i_eval_io.c</locationURI>
-		</link>
-		<link>
 			<name>Drivers/BSP/STM32H743I_EVAL/stm32h743i_eval_bus.c</name>
 			<type>1</type>
 			<locationURI>PARENT-7-PROJECT_LOC/Drivers/BSP/STM32H743I-EVAL/stm32h743i_eval_bus.c</locationURI>
+		</link>
+		<link>
+			<name>Drivers/BSP/STM32H743I_EVAL/stm32h743i_eval_io.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Drivers/BSP/STM32H743I-EVAL/stm32h743i_eval_io.c</locationURI>
 		</link>
 		<link>
 			<name>Drivers/BSP/STM32H743I_EVAL/stm32h743i_eval_lcd.c</name>

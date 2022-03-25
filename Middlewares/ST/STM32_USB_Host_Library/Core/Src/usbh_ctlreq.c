@@ -147,6 +147,22 @@ USBH_StatusTypeDef USBH_Get_CfgDesc(USBH_HandleTypeDef *phost,
 
   return status;
 }
+USBH_StatusTypeDef USBH_Get_CfgDescAtIndex(USBH_HandleTypeDef *phost,
+                                    uint16_t length, uint16_t index)
+
+{
+  USBH_StatusTypeDef status;
+  uint8_t *pData = phost->device.CfgDesc_Raw;;
+
+  if ((status = USBH_GetDescriptor(phost, (USB_REQ_RECIPIENT_DEVICE | USB_REQ_TYPE_STANDARD),
+                                   (USB_DESC_CONFIGURATION | index), pData, length)) == USBH_OK)
+  {
+    /* Commands successfully sent and Response Received  */
+    USBH_ParseCfgDesc(&phost->device.CfgDesc, pData, length);
+  }
+
+  return status;
+}
 
 
 /**

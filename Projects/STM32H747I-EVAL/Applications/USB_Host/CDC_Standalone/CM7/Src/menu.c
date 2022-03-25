@@ -331,40 +331,40 @@ void BSP_JOY_Callback(JOY_TypeDef JOY, JOYPin_TypeDef JoyPin)
   * @param  Button Specifies the pin connected EXTI line
   * @retval None
   */
-void BSP_PB_Callback(Button_TypeDef Button)
-{
-  static uint32_t debounce_time = 0;
-  if(Button == BUTTON_TAMPER)
-  {
-    if(CdcDemo.state == CDC_DEMO_SEND)
-    {
-      /* Prevent debounce effect for Tamper button */
-      if((HAL_GetTick() - debounce_time) > 50)
-      {
-        debounce_time = HAL_GetTick();
-      }
-      else
-      {
-        return;
-      }  
-      UTIL_LCD_SetBackColor(UTIL_LCD_COLOR_BLACK); 
-      /* Change the selection type */
-      if(CdcSelectMode == CDC_SELECT_MENU)
-      {
-        CDC_ChangeSelectMode(CDC_SELECT_CONFIG); 
-      }
-      else if(CdcSelectMode == CDC_SELECT_CONFIG)
-      {
-        CDC_ChangeSelectMode(CDC_SELECT_MENU);
-      }
-      
-      else if(CdcSelectMode == CDC_SELECT_FILE)
-      {
-        CDC_ChangeSelectMode(CDC_SELECT_FILE);
-      }
-    }
-  }
-}
+//void BSP_PB_Callback(Button_TypeDef Button)
+//{
+//  static uint32_t debounce_time = 0;
+//  if(Button == BUTTON_TAMPER)
+//  {
+//    if(CdcDemo.state == CDC_DEMO_SEND)
+//    {
+//      /* Prevent debounce effect for Tamper button */
+//      if((HAL_GetTick() - debounce_time) > 50)
+//      {
+//        debounce_time = HAL_GetTick();
+//      }
+//      else
+//      {
+//        return;
+//      }
+//      UTIL_LCD_SetBackColor(UTIL_LCD_COLOR_BLACK);
+//      /* Change the selection type */
+//      if(CdcSelectMode == CDC_SELECT_MENU)
+//      {
+//        CDC_ChangeSelectMode(CDC_SELECT_CONFIG);
+//      }
+//      else if(CdcSelectMode == CDC_SELECT_CONFIG)
+//      {
+//        CDC_ChangeSelectMode(CDC_SELECT_MENU);
+//      }
+//
+//      else if(CdcSelectMode == CDC_SELECT_FILE)
+//      {
+//        CDC_ChangeSelectMode(CDC_SELECT_FILE);
+//      }
+//    }
+//  }
+//}
 
 /**
 * @brief  Clears the text zone.
