@@ -276,7 +276,8 @@ USBH_StatusTypeDef USBH_LL_Init(USBH_HandleTypeDef * phost)
   hhcd.Init.low_power_enable = 0;
   hhcd.Init.phy_itface = HCD_PHY_ULPI;
   hhcd.Init.Sof_enable = 0;
-  hhcd.Init.speed = HCD_SPEED_HIGH;
+//  hhcd.Init.speed = HCD_SPEED_HIGH;
+  hhcd.Init.speed = HCD_SPEED_FULL;
   hhcd.Init.vbus_sensing_enable = 0;
   hhcd.Init.use_external_vbus = 1;
   hhcd.Init.lpm_enable = 0;

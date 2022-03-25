@@ -20,10 +20,10 @@
 	</buildSpec>
 	<natures>
 		<nature>org.eclipse.cdt.core.cnature</nature>
-		<nature>org.eclipse.cdt.managedbuilder.core.managedBuildNature</nature>
+		<nature>com.st.stm32cube.ide.mcu.MCUMultiCpuProjectNature</nature>
 		<nature>org.eclipse.cdt.managedbuilder.core.ScannerConfigNature</nature>
-		<nature>fr.ac6.mcu.ide.core.MCUProjectNature</nature>
-		<nature>fr.ac6.mcu.ide.core.MCUMultiCoreProjectNature</nature>
+		<nature>com.st.stm32cube.ide.mcu.MCUSW4STM32ConvertedProjectNature</nature>
+		<nature>org.eclipse.cdt.managedbuilder.core.managedBuildNature</nature>
 	</natures>
 	<linkedResources>
 		<link>
@@ -32,14 +32,24 @@
 			<locationURI>PARENT-2-PROJECT_LOC/readme.txt</locationURI>
 		</link>
 		<link>
-			<name>Utilities/stm32_lcd.c</name>
+			<name>Utilities/circular_buffer.c</name>
 			<type>1</type>
-			<locationURI>PARENT-7-PROJECT_LOC/Utilities/lcd/stm32_lcd.c</locationURI>
+			<locationURI>PARENT-7-PROJECT_LOC/Utilities/circular_buffer/circular_buffer.c</locationURI>
 		</link>
-			<link>
+		<link>
 			<name>Utilities/lcd_trace.c</name>
 			<type>1</type>
 			<locationURI>PARENT-7-PROJECT_LOC/Utilities/Lcd_Trace/lcd_trace.c</locationURI>
+		</link>
+		<link>
+			<name>Utilities/ringbuf.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Utilities/ringbuf/ringbuf.c</locationURI>
+		</link>
+		<link>
+			<name>Utilities/stm32_lcd.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Utilities/lcd/stm32_lcd.c</locationURI>
 		</link>
 		<link>
 			<name>Application/CM4/main.c</name>
@@ -50,6 +60,11 @@
 			<name>Application/CM4/stm32h7xx_it.c</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/CM4/Src/stm32h7xx_it.c</locationURI>
+		</link>
+		<link>
+			<name>Application/CM7/app_ethernet.c</name>
+			<type>1</type>
+			<location>C:/Users/Z004FC4Z/STM32CubeH7_epocal/Projects/STM32H747I-EVAL/Applications/USB_Host/CDC_Standalone/CM7/Src/app_ethernet.c</location>
 		</link>
 		<link>
 			<name>Application/CM7/cdc_configuration.c</name>
@@ -65,6 +80,11 @@
 			<name>Application/CM7/cdc_send.c</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/CM7/Src/cdc_send.c</locationURI>
+		</link>
+		<link>
+			<name>Application/CM7/ethernetif.c</name>
+			<type>1</type>
+			<location>C:/Users/Z004FC4Z/STM32CubeH7_epocal/Projects/STM32H747I-EVAL/Applications/USB_Host/CDC_Standalone/CM7/Src/ethernetif.c</location>
 		</link>
 		<link>
 			<name>Application/CM7/explorer.c</name>
@@ -90,6 +110,11 @@
 			<name>Application/CM7/stm32h7xx_it.c</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/CM7/Src/stm32h7xx_it.c</locationURI>
+		</link>
+		<link>
+			<name>Application/CM7/tcp_echoclient.c</name>
+			<type>1</type>
+			<location>C:/Users/Z004FC4Z/STM32CubeH7_epocal/Projects/STM32H747I-EVAL/Applications/USB_Host/CDC_Standalone/CM7/Src/tcp_echoclient.c</location>
 		</link>
 		<link>
 			<name>Application/CM7/usbh_conf.c</name>
@@ -142,6 +167,11 @@
 			<locationURI>PARENT-7-PROJECT_LOC/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_dsi.c</locationURI>
 		</link>
 		<link>
+			<name>Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_exti.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_exti.c</locationURI>
+		</link>
+		<link>
 			<name>Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_flash.c</name>
 			<type>1</type>
 			<locationURI>PARENT-7-PROJECT_LOC/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_flash.c</locationURI>
@@ -170,6 +200,11 @@
 			<name>Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_i2c.c</name>
 			<type>1</type>
 			<locationURI>PARENT-7-PROJECT_LOC/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_i2c.c</locationURI>
+		</link>
+		<link>
+			<name>Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_i2c_ex.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_i2c_ex.c</locationURI>
 		</link>
 		<link>
 			<name>Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_ltdc.c</name>
@@ -226,16 +261,6 @@
 			<type>1</type>
 			<locationURI>PARENT-7-PROJECT_LOC/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_sdram.c</locationURI>
 		</link>
-			<link>
-			<name>Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_exti.c</name>
-			<type>1</type>
-			<locationURI>PARENT-7-PROJECT_LOC/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_exti.c</locationURI>
-		</link>
-			<link>
-			<name>Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_i2c_ex.c</name>
-			<type>1</type>
-			<locationURI>PARENT-7-PROJECT_LOC/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_i2c_ex.c</locationURI>
-		</link>
 		<link>
 			<name>Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_sram.c</name>
 			<type>1</type>
@@ -281,30 +306,30 @@
 			<type>1</type>
 			<locationURI>PARENT-7-PROJECT_LOC/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_ll_usb.c</locationURI>
 		</link>
-				<link>
-			<name>Drivers/BSP/Components/mfxstm32l152.c</name>
-			<type>1</type>
-			<locationURI>PARENT-7-PROJECT_LOC/Drivers/BSP/Components/mfxstm32l152/mfxstm32l152.c</locationURI>
-		</link>
-				<link>
-			<name>Drivers/BSP/Components/mfxstm32l152_reg.c</name>
-			<type>1</type>
-			<locationURI>PARENT-7-PROJECT_LOC/Drivers/BSP/Components/mfxstm32l152/mfxstm32l152_reg.c</locationURI>
-		</link>
-				<link>
-			<name>Drivers/BSP/Components/otm8009a_reg.c</name>
-			<type>1</type>
-			<locationURI>PARENT-7-PROJECT_LOC/Drivers/BSP/Components/otm8009a/otm8009a_reg.c</locationURI>
-		</link>
-			<link>
+		<link>
 			<name>Drivers/BSP/Components/is42s32800j.c</name>
 			<type>1</type>
 			<locationURI>PARENT-7-PROJECT_LOC/Drivers/BSP/Components/is42s32800j/is42s32800j.c</locationURI>
 		</link>
-				<link>
+		<link>
+			<name>Drivers/BSP/Components/mfxstm32l152.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Drivers/BSP/Components/mfxstm32l152/mfxstm32l152.c</locationURI>
+		</link>
+		<link>
+			<name>Drivers/BSP/Components/mfxstm32l152_reg.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Drivers/BSP/Components/mfxstm32l152/mfxstm32l152_reg.c</locationURI>
+		</link>
+		<link>
 			<name>Drivers/BSP/Components/otm8009a.c</name>
 			<type>1</type>
 			<locationURI>PARENT-7-PROJECT_LOC/Drivers/BSP/Components/otm8009a/otm8009a.c</locationURI>
+		</link>
+		<link>
+			<name>Drivers/BSP/Components/otm8009a_reg.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Drivers/BSP/Components/otm8009a/otm8009a_reg.c</locationURI>
 		</link>
 		<link>
 			<name>Drivers/BSP/STM32H747I_EVAL/stm32h747i_eval.c</name>
@@ -312,14 +337,14 @@
 			<locationURI>PARENT-7-PROJECT_LOC/Drivers/BSP/STM32H747I-EVAL/stm32h747i_eval.c</locationURI>
 		</link>
 		<link>
-			<name>Drivers/BSP/STM32H747I_EVAL/stm32h747i_eval_io.c</name>
-			<type>1</type>
-			<locationURI>PARENT-7-PROJECT_LOC/Drivers/BSP/STM32H747I-EVAL/stm32h747i_eval_io.c</locationURI>
-		</link>
-		<link>
 			<name>Drivers/BSP/STM32H747I_EVAL/stm32h747i_eval_bus.c</name>
 			<type>1</type>
 			<locationURI>PARENT-7-PROJECT_LOC/Drivers/BSP/STM32H747I-EVAL/stm32h747i_eval_bus.c</locationURI>
+		</link>
+		<link>
+			<name>Drivers/BSP/STM32H747I_EVAL/stm32h747i_eval_io.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Drivers/BSP/STM32H747I-EVAL/stm32h747i_eval_io.c</locationURI>
 		</link>
 		<link>
 			<name>Drivers/BSP/STM32H747I_EVAL/stm32h747i_eval_lcd.c</name>
@@ -352,6 +377,136 @@
 			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/Third_Party/FatFs/src/ff_gen_drv.c</locationURI>
 		</link>
 		<link>
+			<name>Middlewares/LwIP/Api/api_lib.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/Third_Party/LwIP/src/api/api_lib.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/LwIP/Api/api_msg.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/Third_Party/LwIP/src/api/api_msg.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/LwIP/Api/err.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/Third_Party/LwIP/src/api/err.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/LwIP/Api/netbuf.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/Third_Party/LwIP/src/api/netbuf.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/LwIP/Api/netdb.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/Third_Party/LwIP/src/api/netdb.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/LwIP/Api/netifapi.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/Third_Party/LwIP/src/api/netifapi.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/LwIP/Api/sockets.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/Third_Party/LwIP/src/api/sockets.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/LwIP/Api/tcpip.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/Third_Party/LwIP/src/api/tcpip.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/LwIP/Core/def.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/Third_Party/LwIP/src/core/def.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/LwIP/Core/dns.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/Third_Party/LwIP/src/core/dns.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/LwIP/Core/inet_chksum.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/Third_Party/LwIP/src/core/inet_chksum.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/LwIP/Core/init.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/Third_Party/LwIP/src/core/init.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/LwIP/Core/ip.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/Third_Party/LwIP/src/core/ip.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/LwIP/Core/mem.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/Third_Party/LwIP/src/core/mem.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/LwIP/Core/memp.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/Third_Party/LwIP/src/core/memp.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/LwIP/Core/netif.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/Third_Party/LwIP/src/core/netif.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/LwIP/Core/pbuf.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/Third_Party/LwIP/src/core/pbuf.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/LwIP/Core/raw.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/Third_Party/LwIP/src/core/raw.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/LwIP/Core/stats.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/Third_Party/LwIP/src/core/stats.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/LwIP/Core/sys.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/Third_Party/LwIP/src/core/sys.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/LwIP/Core/tcp.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/Third_Party/LwIP/src/core/tcp.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/LwIP/Core/tcp_in.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/Third_Party/LwIP/src/core/tcp_in.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/LwIP/Core/tcp_out.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/Third_Party/LwIP/src/core/tcp_out.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/LwIP/Core/timeouts.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/Third_Party/LwIP/src/core/timeouts.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/LwIP/Core/udp.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/Third_Party/LwIP/src/core/udp.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/LwIP/Netif/ethernet.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/Third_Party/LwIP/src/netif/ethernet.c</locationURI>
+		</link>
+		<link>
 			<name>Middlewares/STM32_USBH_Library/Core/usbh_core.c</name>
 			<type>1</type>
 			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/ST/STM32_USB_Host_Library/Core/Src/usbh_core.c</locationURI>
@@ -370,6 +525,46 @@
 			<name>Middlewares/STM32_USBH_Library/Core/usbh_pipes.c</name>
 			<type>1</type>
 			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/ST/STM32_USB_Host_Library/Core/Src/usbh_pipes.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/LwIP/Core/IPv4/autoip.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/Third_Party/LwIP/src/core/ipv4/autoip.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/LwIP/Core/IPv4/dhcp.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/Third_Party/LwIP/src/core/ipv4/dhcp.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/LwIP/Core/IPv4/etharp.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/Third_Party/LwIP/src/core/ipv4/etharp.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/LwIP/Core/IPv4/icmp.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/Third_Party/LwIP/src/core/ipv4/icmp.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/LwIP/Core/IPv4/igmp.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/Third_Party/LwIP/src/core/ipv4/igmp.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/LwIP/Core/IPv4/ip4.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/Third_Party/LwIP/src/core/ipv4/ip4.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/LwIP/Core/IPv4/ip4_addr.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_addr.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/LwIP/Core/IPv4/ip4_frag.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c</locationURI>
 		</link>
 		<link>
 			<name>Middlewares/STM32_USBH_Library/Class/CDC/usbh_cdc.c</name>

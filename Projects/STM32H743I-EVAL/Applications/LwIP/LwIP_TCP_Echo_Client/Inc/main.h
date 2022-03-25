@@ -37,15 +37,15 @@
 #define DEST_IP_ADDR0   ((uint8_t)192U)
 #define DEST_IP_ADDR1   ((uint8_t)168U)
 #define DEST_IP_ADDR2   ((uint8_t)0U)
-#define DEST_IP_ADDR3   ((uint8_t)11U)
+#define DEST_IP_ADDR3   ((uint8_t)101U)
 
-#define DEST_PORT       ((uint16_t)7U)
+#define DEST_PORT       ((uint16_t)8080U)
 
 /*Static IP ADDRESS: IP_ADDR0.IP_ADDR1.IP_ADDR2.IP_ADDR3 */
 #define IP_ADDR0   ((uint8_t) 192U)
 #define IP_ADDR1   ((uint8_t) 168U)
 #define IP_ADDR2   ((uint8_t) 0U)
-#define IP_ADDR3   ((uint8_t) 10U)
+#define IP_ADDR3   ((uint8_t) 108U)
 
 /*NETMASK*/
 #define NETMASK_ADDR0   ((uint8_t) 255U)

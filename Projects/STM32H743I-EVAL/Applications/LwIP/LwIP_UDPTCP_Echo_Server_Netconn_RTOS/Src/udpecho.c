@@ -72,7 +72,7 @@ udpecho_thread(void *arg)
       if(err != ERR_OK) {
         LWIP_DEBUGF(LWIP_DBG_ON, ("netconn_send failed: %d\n", (int)err));
       } else {
-        LWIP_DEBUGF(LWIP_DBG_ON, ("got %s\n", buffer));
+        LWIP_DEBUGF(LWIP_DBG_ON, ("got %s\n", buf));
       }
       netbuf_delete(tx_buf);
     }

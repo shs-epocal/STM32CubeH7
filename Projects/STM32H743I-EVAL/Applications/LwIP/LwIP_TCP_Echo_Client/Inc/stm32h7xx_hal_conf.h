@@ -51,7 +51,7 @@
 /* #define HAL_HASH_MODULE_ENABLED */
 /* #define HAL_HCD_MODULE_ENABLED */
 /* #define HAL_HRTIM_MODULE_ENABLED */
-/* #define HAL_HSEM_MODULE_ENABLED */
+#define HAL_HSEM_MODULE_ENABLED
 #define HAL_I2C_MODULE_ENABLED
 /* #define HAL_I2S_MODULE_ENABLED */
 /* #define HAL_IRDA_MODULE_ENABLED */
@@ -161,12 +161,12 @@
 #define ETH_TX_DESC_CNT         4  /* number of Ethernet Tx DMA descriptors */
 #define ETH_RX_DESC_CNT         4  /* number of Ethernet Rx DMA descriptors */
 
-#define ETH_MAC_ADDR0    ((uint8_t)0x02)
-#define ETH_MAC_ADDR1    ((uint8_t)0x00)
-#define ETH_MAC_ADDR2    ((uint8_t)0x00)
-#define ETH_MAC_ADDR3    ((uint8_t)0x00)
-#define ETH_MAC_ADDR4    ((uint8_t)0x00)
-#define ETH_MAC_ADDR5    ((uint8_t)0x00)
+#define ETH_MAC_ADDR0    ((uint8_t)0x90)
+#define ETH_MAC_ADDR1    ((uint8_t)0xCD)
+#define ETH_MAC_ADDR2    ((uint8_t)0x19)
+#define ETH_MAC_ADDR3    ((uint8_t)0xF6)
+#define ETH_MAC_ADDR4    ((uint8_t)0xE7)
+#define ETH_MAC_ADDR5    ((uint8_t)0xD9)
 
 /* ########################## Assert Selection ############################## */
 /**

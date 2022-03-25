@@ -29,8 +29,8 @@ To run this application, On the remote PC, open a command prompt window.
 At the command prompt, enter:
     C:\>echotool /p tcp /s
 where:
-    – /p transport layer protocol used for communication (TCP)
-    – /s is the actual mode of connection (Server mode)
+    ï¿½ /p transport layer protocol used for communication (TCP)
+    ï¿½ /s is the actual mode of connection (Server mode)
 
 Each time the user pushes the Tamper button of the STM32H743xI_EVAL board, an echo
 request is sent to the server
@@ -71,17 +71,17 @@ For more details about this application, refer to UM1713 "STM32Cube interfacing 
 
 
 @Note If the  application is using the DTCM/ITCM memories (@0x20000000/ 0x0000000: not cacheable and only accessible
-      by the Cortex M7 and the  MDMA), no need for cache maintenance when the Cortex M7 and the MDMA access these RAMs.
-      If the application needs to use DMA(or other masters) based access or requires more RAM, then  the user has to:
-              - Use a non TCM SRAM. (example : D1 AXI-SRAM @ 0x24000000)
-              - Add a cache maintenance mechanism to ensure the cache coherence between CPU and other masters(DMAs,DMA2D,LTDC,MDMA).
-              - The addresses and the size of cacheable buffers (shared between CPU and other masters)
-                must be	properly defined to be aligned to L1-CACHE line size (32 bytes).
+      by the Cortex M7 and the ï¿½MDMA), no need for cache maintenance when the Cortex M7 and the MDMA access these RAMs.
+ï¿½ï¿½ï¿½ï¿½ï¿½ If the application needs to use DMA(or other masters) based access or requires more RAM, then ï¿½the user has to:
+ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ - Use a non TCM SRAM. (example : D1 AXI-SRAM @ 0x24000000)
+ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ - Add a cache maintenance mechanism to ensure the cache coherence between CPU and other masters(DMAs,DMA2D,LTDC,MDMA).
+ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½       - The addresses and the size of cacheable buffers (shared between CPU and other masters)
+                must be	properlyï¿½defined to be aligned to L1-CACHE line size (32 bytes).
 
 @Note It is recommended to enable the cache and maintain its coherence.
       Depending on the use case it is also possible to configure the cache attributes using the MPU.
-      Please refer to the AN4838 "Managing memory protection unit (MPU) in STM32 MCUs"
-      Please refer to the AN4839 "Level 1 cache on STM32F7 Series"
+ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Please refer to the AN4838 "Managing memory protection unit (MPU) in STM32 MCUs"
+ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Please refer to the AN4839 "Level 1 cache on STM32F7 Series"
 
 @par Keywords
 

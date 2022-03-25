@@ -29,6 +29,7 @@
 #include "udpecho.h"
 #include "app_ethernet.h"
 
+extern void initialise_monitor_handles(void);
 
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
@@ -43,6 +44,7 @@ static void StartThread(void const * argument);
 static void Netif_Config(void);
 static void MPU_Config(void);
 static void CPU_CACHE_Enable(void);
+static void Error_Handler(void);
 
 /* Private functions ---------------------------------------------------------*/
 
@@ -53,11 +55,20 @@ static void CPU_CACHE_Enable(void);
   */
 int main(void)
 {
+	int32_t timeout;
+	initialise_monitor_handles();
   /* Configure the MPU attributes as Device memory for ETH DMA descriptors */
   MPU_Config();
   
   /* Enable the CPU Cache */
   CPU_CACHE_Enable();
+  /* Wait until CPU2 boots and enters in stop mode or timeout*/
+  timeout = 0xFFFF;
+  while((__HAL_RCC_GET_FLAG(RCC_FLAG_D2CKRDY) != RESET) && (timeout-- > 0));
+  if (timeout < 0)
+  {
+    Error_Handler();
+  }
 
     /* STM32H7xx HAL library initialization:
        - Configure the TIM6 to generate an interrupt each 1 msec
@@ -69,6 +80,26 @@ int main(void)
   /* Configure the system clock to 400 MHz */
   SystemClock_Config(); 
   
+  /* When system initialization is finished, Cortex-M7 will release (wakeup) Cortex-M4  by means of
+  HSEM notification. Cortex-M4 release could be also ensured by any Domain D2 wakeup source (SEV,EXTI..).
+  */
+
+  /*HW semaphore Clock enable*/
+  __HAL_RCC_HSEM_CLK_ENABLE();
+
+  /*Take HSEM */
+//  HAL_HSEM_FastTake(HSEM_ID_0);
+  /*Release HSEM in order to notify the CPU2(CM4)*/
+//  HAL_HSEM_Release(HSEM_ID_0,0);
+
+  /* wait until CPU2 wakes up from stop mode */
+  timeout = 0xFFFF;
+  while((__HAL_RCC_GET_FLAG(RCC_FLAG_D2CKRDY) == RESET) && (timeout-- > 0));
+  if ( timeout < 0 )
+  {
+    Error_Handler();
+  }
+
   /* Configure the LCD ...*/
   BSP_Config();
   
@@ -118,16 +149,16 @@ static void BSP_Config(void)
 #ifdef USE_LCD
   
   /* Initialize the LCD */
-  BSP_LCD_Init(0, LCD_ORIENTATION_LANDSCAPE);
-  UTIL_LCD_SetFuncDriver(&LCD_Driver);
+//  BSP_LCD_Init(0, LCD_ORIENTATION_LANDSCAPE);
+//  UTIL_LCD_SetFuncDriver(&LCD_Driver);
 
   
   /* Initialize LCD Log module */
-  UTIL_LCD_TRACE_Init();  
+//  UTIL_LCD_TRACE_Init();
 
   /* Show Header and Footer texts */
-  UTIL_LCD_TRACE_SetHeader((uint8_t *)"TCP & UDP Echo Server");
-  UTIL_LCD_TRACE_SetFooter((uint8_t *)"STM32H743I-EVAL board");
+//  UTIL_LCD_TRACE_SetHeader((uint8_t *)"TCP & UDP Echo Server");
+//  UTIL_LCD_TRACE_SetFooter((uint8_t *)"STM32H743I-EVAL board");
   
   LCD_UsrTrace("  State: Ethernet Initialization ...\n");
 #else
@@ -208,7 +239,8 @@ static void SystemClock_Config(void)
   HAL_StatusTypeDef ret = HAL_OK;
   
   /*!< Supply configuration update enable */
-  HAL_PWREx_ConfigSupply(PWR_LDO_SUPPLY);
+//  HAL_PWREx_ConfigSupply(PWR_LDO_SUPPLY);
+  HAL_PWREx_ConfigSupply(PWR_DIRECT_SMPS_SUPPLY);
 
   /* The voltage scaling allows optimizing the power consumption when the device is
      clocked below the maximum system frequency, to update the voltage scaling value
@@ -218,7 +250,7 @@ static void SystemClock_Config(void)
   while(!__HAL_PWR_GET_FLAG(PWR_FLAG_VOSRDY)) {}
   
   /* Enable D2 domain SRAM3 Clock (0x30040000 AXI)*/
-  __HAL_RCC_D2SRAM3_CLK_ENABLE();
+//  __HAL_RCC_D2SRAM3_CLK_ENABLE();
   
   /* Enable HSE Oscillator and activate PLL with HSE as source */
   RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
@@ -260,14 +292,14 @@ static void SystemClock_Config(void)
     while(1){ ; }
   }
   
-  /*activate CSI clock mondatory for I/O Compensation Cell*/  
-  __HAL_RCC_CSI_ENABLE() ;
-    
-  /* Enable SYSCFG clock mondatory for I/O Compensation Cell */
-  __HAL_RCC_SYSCFG_CLK_ENABLE() ;
-  
-  /* Enables the I/O Compensation Cell */    
-  HAL_EnableCompensationCell(); 
+//  /*activate CSI clock mondatory for I/O Compensation Cell*/
+//  __HAL_RCC_CSI_ENABLE() ;
+//
+//  /* Enable SYSCFG clock mondatory for I/O Compensation Cell */
+//  __HAL_RCC_SYSCFG_CLK_ENABLE() ;
+//
+//  /* Enables the I/O Compensation Cell */
+//  HAL_EnableCompensationCell();
 }
 
 /**
@@ -362,6 +394,15 @@ static void CPU_CACHE_Enable(void)
 
   /* Enable D-Cache */
   SCB_EnableDCache();
+}
+
+/**
+  * @brief Error Handler
+  * @retval None
+  */
+static void Error_Handler(void)
+{
+  while(1) { ; } /* Blocking on error */
 }
 
 #ifdef  USE_FULL_ASSERT

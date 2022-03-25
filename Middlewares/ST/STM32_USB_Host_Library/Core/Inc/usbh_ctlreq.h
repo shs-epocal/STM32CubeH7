@@ -103,6 +103,8 @@ USBH_StatusTypeDef USBH_SetCfg(USBH_HandleTypeDef *phost, uint16_t cfg_idx);
 
 USBH_StatusTypeDef USBH_Get_CfgDesc(USBH_HandleTypeDef *phost, uint16_t length);
 
+USBH_StatusTypeDef USBH_Get_CfgDescAtIndex(USBH_HandleTypeDef *phost, uint16_t length, uint16_t index);
+
 USBH_StatusTypeDef USBH_SetAddress(USBH_HandleTypeDef *phost,
                                    uint8_t DeviceAddress);
 

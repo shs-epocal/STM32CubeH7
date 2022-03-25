@@ -296,29 +296,29 @@ static void CDC_ShowFiles(uint8_t offset, uint8_t select)
   * @param  phost: Host handle
   * @retval None
   */
-void USBH_CDC_TransmitCallback(USBH_HandleTypeDef *phost)
-{
-  uint32_t bytesread;
-
-  if (use_file == 1)
-  {
-    if (f_tell(&MyFile) == f_size(&MyFile))
-    {
-      f_close(&MyFile);
-      LCD_DbgTrace(">> File sent\n");
-      use_file = 0;
-    }
-    else
-    {
-      /* Fill the buffer to Send */
-      f_read(&MyFile, CDC_TX_Buffer, TX_BUFF_SIZE, (void *)&bytesread);
-      /* Send File */
-      USBH_CDC_Transmit(&hUSBHost, CDC_TX_Buffer, bytesread);
-    }
-  }
-  else
-  {
-    LCD_DbgTrace(">> Data sent\n");
-  }
-}
+//void USBH_CDC_TransmitCallback(USBH_HandleTypeDef *phost)
+//{
+//  uint32_t bytesread;
+//
+//  if (use_file == 1)
+//  {
+//    if (f_tell(&MyFile) == f_size(&MyFile))
+//    {
+//      f_close(&MyFile);
+//      LCD_DbgTrace(">> File sent\n");
+//      use_file = 0;
+//    }
+//    else
+//    {
+//      /* Fill the buffer to Send */
+//      f_read(&MyFile, CDC_TX_Buffer, TX_BUFF_SIZE, (void *)&bytesread);
+//      /* Send File */
+//      USBH_CDC_Transmit(&hUSBHost, CDC_TX_Buffer, bytesread);
+//    }
+//  }
+//  else
+//  {
+//    LCD_DbgTrace(">> Data sent\n");
+//  }
+//}
 

@@ -143,6 +143,22 @@ USBH_StatusTypeDef USBH_Get_CfgDesc(USBH_HandleTypeDef *phost,
 
   return status;
 }
+USBH_StatusTypeDef USBH_Get_CfgDescAtIndex(USBH_HandleTypeDef *phost,
+                                    uint16_t length, uint16_t index)
+
+{
+  USBH_StatusTypeDef status;
+  uint8_t *pData = phost->device.CfgDesc_Raw;;
+
+  if ((status = USBH_GetDescriptor(phost, (USB_REQ_RECIPIENT_DEVICE | USB_REQ_TYPE_STANDARD),
+                                   (USB_DESC_CONFIGURATION | index), pData, length)) == USBH_OK)
+  {
+    /* Commands successfully sent and Response Received  */
+    USBH_ParseCfgDesc(&phost->device.CfgDesc, pData, length);
+  }
+
+  return status;
+}
 
 
 /**
@@ -412,19 +428,22 @@ static void USBH_ParseCfgDesc(USBH_CfgDescTypeDef *cfg_desc, uint8_t *buf,
         pif = &cfg_desc->Itf_Desc[if_ix];
         USBH_ParseInterfaceDesc(pif, (uint8_t *)(void *)pdesc);
 
-        ep_ix = 0U;
-        pep = (USBH_EpDescTypeDef *)0;
-        while ((ep_ix < pif->bNumEndpoints) && (ptr < cfg_desc->wTotalLength))
+        if (pif->bNumEndpoints > 0)
         {
-          pdesc = USBH_GetNextDesc((uint8_t *)(void *)pdesc, &ptr);
-          if (pdesc->bDescriptorType   == USB_DESC_TYPE_ENDPOINT)
-          {
-            pep = &cfg_desc->Itf_Desc[if_ix].Ep_Desc[ep_ix];
-            USBH_ParseEPDesc(pep, (uint8_t *)(void *)pdesc);
-            ep_ix++;
-          }
+			ep_ix = 0U;
+			pep = (USBH_EpDescTypeDef *)0;
+			while ((ep_ix < pif->bNumEndpoints) && (ptr < cfg_desc->wTotalLength))
+			{
+			  pdesc = USBH_GetNextDesc((uint8_t *)(void *)pdesc, &ptr);
+			  if (pdesc->bDescriptorType   == USB_DESC_TYPE_ENDPOINT)
+			  {
+				pep = &cfg_desc->Itf_Desc[if_ix].Ep_Desc[ep_ix];
+				USBH_ParseEPDesc(pep, (uint8_t *)(void *)pdesc);
+				ep_ix++;
+			  }
+			}
+			if_ix++;
         }
-        if_ix++;
       }
     }
   }

@@ -606,7 +606,7 @@ USBH_StatusTypeDef  USBH_Process(USBH_HandleTypeDef *phost)
       if (phost->pUser != NULL)
       {
         phost->pUser(phost, HOST_USER_SELECT_CONFIGURATION);
-        phost->gState = HOST_SET_CONFIGURATION;
+//        phost->gState = HOST_SET_CONFIGURATION;
 
 #if (USBH_USE_OS == 1U)
         phost->os_msg = (uint32_t)USBH_STATE_CHANGED_EVENT;
