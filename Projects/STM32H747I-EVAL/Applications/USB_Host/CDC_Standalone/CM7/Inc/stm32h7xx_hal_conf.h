@@ -162,18 +162,13 @@
 #define ETH_TX_DESC_CNT         4  /* number of Ethernet Tx DMA descriptors */
 #define ETH_RX_DESC_CNT         4  /* number of Ethernet Rx DMA descriptors */
 
-#define ETH_MAC_ADDR0    ((uint8_t)0xc4)
-#define ETH_MAC_ADDR1    ((uint8_t)0x41)
-#define ETH_MAC_ADDR2    ((uint8_t)0x1e)
-#define ETH_MAC_ADDR3    ((uint8_t)0x75)
-#define ETH_MAC_ADDR4    ((uint8_t)0xb9)
-#define ETH_MAC_ADDR5    ((uint8_t)0x51)
-//#define ETH_MAC_ADDR0    ((uint8_t)0x90)
-//#define ETH_MAC_ADDR1    ((uint8_t)0xCD)
-//#define ETH_MAC_ADDR2    ((uint8_t)0x19)
-//#define ETH_MAC_ADDR3    ((uint8_t)0xF6)
-//#define ETH_MAC_ADDR4    ((uint8_t)0xE7)
-//#define ETH_MAC_ADDR5    ((uint8_t)0xD9)
+ //MAC address in update is now pulled in from adapter and so this is not used
+#define ETH_MAC_ADDR0    ((uint8_t)0x70)
+#define ETH_MAC_ADDR1    ((uint8_t)0x88)
+#define ETH_MAC_ADDR2    ((uint8_t)0x6b)
+#define ETH_MAC_ADDR3    ((uint8_t)0x8a)
+#define ETH_MAC_ADDR4    ((uint8_t)0x53)
+#define ETH_MAC_ADDR5    ((uint8_t)0xb9)
 
 /* ########################## Assert Selection ############################## */
 /**

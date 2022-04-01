@@ -29,48 +29,11 @@ extern "C" {
 #include "usbh_core.h"
 #include "usbh_cdc.h"
 
-#define RTL8152_REQT_READ		0xc0
-#define RTL8152_REQT_WRITE		0x40
-#define RTL8152_REQ_GET_REGS		0x05
-#define RTL8152_REQ_SET_REGS		0x05
-
-#define BYTE_EN_DWORD			0xff
-#define BYTE_EN_WORD			0x33
-#define BYTE_EN_BYTE			0x11
-#define BYTE_EN_SIX_BYTES		0x3f
-#define BYTE_EN_START_MASK		0x0f
-#define BYTE_EN_END_MASK		0xf0
-
-#define MCU_TYPE_PLA			0x0100
-
-#define VENDOR_ID_REALTEK		0x0bda
 #define LTM_ENABLE				0x32
 #define SET_ISOCH_DELAY         0x31
-/* Define generic CDC_ECM equivalences.  */
-#define UX_DEVICE_CLASS_CDC_ECM_CLASS_COMMUNICATION_CONTROL                 0x02
-#define UX_DEVICE_CLASS_CDC_ECM_SUBCLASS_COMMUNICATION_CONTROL              0x06
-#define UX_DEVICE_CLASS_CDC_ECM_CLASS_COMMUNICATION_DATA                    0x0A
-#define UX_DEVICE_CLASS_CDC_ECM_NEW_INTERRUPT_EVENT                         0x01
-#define UX_DEVICE_CLASS_CDC_ECM_NEW_BULKOUT_EVENT                           0x02
-#define UX_DEVICE_CLASS_CDC_ECM_NEW_BULKIN_EVENT                            0x04
-#define UX_DEVICE_CLASS_CDC_ECM_NEW_DEVICE_STATE_CHANGE_EVENT               0x08
-#define UX_DEVICE_CLASS_CDC_ECM_NETWORK_NOTIFICATION_EVENT                  0x10
-#define UX_DEVICE_CLASS_CDC_ECM_INTERRUPT_RESPONSE_LENGTH                   8
-#define UX_DEVICE_CLASS_CDC_ECM_MAX_CONTROL_RESPONSE_LENGTH                 256
-#define UX_DEVICE_CLASS_CDC_ECM_INTERRUPT_RESPONSE_AVAILABLE_FLAG           1
-#define UX_DEVICE_CLASS_CDC_ECM_BASE_IP_ADDRESS                             0xC0A80001
-#define UX_DEVICE_CLASS_CDC_ECM_BASE_IP_MASK                                0xFFFFFF00
-#define UX_DEVICE_CLASS_CDC_ECM_MAX_MTU                                     1518
-#define UX_DEVICE_CLASS_CDC_ECM_ETHERNET_IP                                 0x0800
-#define UX_DEVICE_CLASS_CDC_ECM_ETHERNET_ARP                                0x0806
-#define UX_DEVICE_CLASS_CDC_ECM_ETHERNET_RARP                               0x8035
-#define UX_DEVICE_CLASS_CDC_ECM_ETHERNET_PACKET_SIZE                        1536
-
-/* Define LINK statess.  */
-#define UX_DEVICE_CLASS_CDC_ECM_LINK_STATE_DOWN                             0
-#define UX_DEVICE_CLASS_CDC_ECM_LINK_STATE_UP                               1
-#define UX_DEVICE_CLASS_CDC_ECM_LINK_STATE_PENDING_UP                       2
-#define UX_DEVICE_CLASS_CDC_ECM_LINK_STATE_PENDING_DOWN                     3
+#define HEADER_FUNC_DESC_TYPE 0x00U
+#define UNION_FUNC_DESC_TYPE 0x06U
+#define ECM_FUNC_DESC_TYPE 0x0FU
 
 /* States for CDC State Machine */
 typedef enum
@@ -99,16 +62,6 @@ typedef enum
   CDC_ECM_SET_ALT_INTERFACE,
   CDC_ECM_SET_ETH_PACKET_FILTER,
   CDC_ECM_LISTEN_NOTIFICATIONS,
-//  CDC_ECM_TRANSFER_DATA,
-//  CDC_ECM_SETTING_UP,
-//  CDC_ECM_SET_ETH_PACKET_FILTER,
-//  CDC_ECM_GET_ETH_PWR_MGT_PTRN,
-//  CDC_ECM_SET_ETH_PWR_MGT_PTRN,
-//  CDC_ECM_SET_ETH_MULTICAST_FILTERS,
-//  CDC_ECM_GET_ETH_STATISTIC,
-//  CDC_ECM_LISTEN_NOTIFICATIONS,
-//  CDC_ECM_SEND_ENCAPSULATED_COMMAND,
-//  CDC_ECM_GET_ENCAPSULATED_RESPONSE,
   CDC_ECM_TRANSFER_DATA,
   CDC_ECM_CONTINUE_FOREVER,
   CDC_ECM_ERROR_STATE,
@@ -119,7 +72,9 @@ typedef enum
 {
   CDC_ECM_APP_IDLE = 0,
   CDC_ECM_APP_LINKED,
+  CDC_ECM_APP_SETUP_STACK,
   CDC_ECM_APP_WAITING,
+  CDC_ECM_APP_DISCONNECTED,
 }CDC_ECM_APP_State;
 
 typedef struct _EthernetNetworkingFunctionalDescriptor
@@ -138,8 +93,8 @@ CDC_EthernetNetworkingFuncDesc_TypeDef;
 typedef struct _USBH_CDC_ECM_InterfaceDesc
 {
   CDC_HeaderFuncDesc_TypeDef             CDC_HeaderFuncDesc;
-  CDC_EthernetNetworkingFuncDesc_TypeDef CDC_EthernetNetworkingFuncDesc;
   CDC_UnionFuncDesc_TypeDef              CDC_UnionFuncDesc;
+  CDC_EthernetNetworkingFuncDesc_TypeDef CDC_EthernetNetworkingFuncDesc;
 }
 CDC_ECM_InterfaceDesc_Typedef;
 
@@ -168,6 +123,7 @@ typedef struct _CDC_ECM_Process
   uint8_t                            string_desc_index;
   uint16_t                           string_desc_len;
   uint16_t                           eth_packet_filter;
+  uint8_t                            *mac_address;
 }
 CDC_ECM_HandleTypeDef;
 
@@ -185,12 +141,6 @@ extern USBH_ClassTypeDef  CDC_ECM_Class;
 * @{
 */
 
-USBH_StatusTypeDef  USBH_CDC_ECM_SetLineCoding(USBH_HandleTypeDef *phost,
-                                           CDC_LineCodingTypeDef *linecoding);
-
-USBH_StatusTypeDef  USBH_CDC_ECM_GetLineCoding(USBH_HandleTypeDef *phost,
-                                           CDC_LineCodingTypeDef *linecoding);
-
 USBH_StatusTypeDef  USBH_CDC_ECM_Transmit(USBH_HandleTypeDef *phost,
                                       uint8_t *pbuff,
                                       uint32_t length);
@@ -207,8 +157,6 @@ uint16_t            USBH_CDC_ECM_GetLastReceivedDataSize(USBH_HandleTypeDef *pho
 uint16_t            USBH_CDC_ECM_GetLastReceivedDataSizeNoti(USBH_HandleTypeDef *phost);
 
 USBH_StatusTypeDef  USBH_CDC_ECM_Stop(USBH_HandleTypeDef *phost);
-
-void USBH_CDC_ECM_LineCodingChanged(USBH_HandleTypeDef *phost);
 
 void USBH_CDC_ECM_TransmitCallback(USBH_HandleTypeDef *phost);
 

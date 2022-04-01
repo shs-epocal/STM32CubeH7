@@ -169,6 +169,7 @@ static err_t tcp_echoclient_connected(void *arg, struct tcp_pcb *tpcb, err_t err
   */
 static err_t tcp_echoclient_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p, err_t err)
 { 
+	BSP_LED_On(LED_RED);
   struct echoclient *es;
   err_t ret_err; 
 
@@ -207,6 +208,21 @@ static err_t tcp_echoclient_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p
   {
     /* increment message count */
     message_count++;
+
+    char str[100];
+    memcpy(str, p->payload, p->len);
+
+    str[p->len] = 0;
+
+    printf("------------------------------------------------------\n");
+    printf("TCP Message Received: %s\n", str);
+    printf("------------------------------------------------------\n");
+
+//    for (int i = 0; i < p->tot_len; i ++)
+//    {
+//    	printf("%c", (char)p->payload);
+//    }
+//    printf("\n");
          
     /* Acknowledge data reception */
     tcp_recved(tpcb, p->tot_len);  
@@ -226,6 +242,7 @@ static err_t tcp_echoclient_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p
     pbuf_free(p);
     ret_err = ERR_OK;
   }
+  BSP_LED_Off(LED_RED);
   return ret_err;
 }
 
@@ -238,6 +255,7 @@ static err_t tcp_echoclient_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p
   */
 static void tcp_echoclient_send(struct tcp_pcb *tpcb, struct echoclient * es)
 {
+	BSP_LED_On(LED_BLUE);
   struct pbuf *ptr;
   err_t wr_err = ERR_OK;
  
@@ -250,6 +268,15 @@ static void tcp_echoclient_send(struct tcp_pcb *tpcb, struct echoclient * es)
     ptr = es->p_tx;
 
     /* enqueue data for transmission */
+    char str[100];
+    memcpy(str, ptr->payload, ptr->len);
+    //set null at len
+    str[ptr->len] = 0;
+
+    printf("------------------------------------------------------\n");
+    printf("TCP Sending Message: %s\n", str);
+    printf("------------------------------------------------------\n");
+
     wr_err = tcp_write(tpcb, ptr->payload, ptr->len, 1);
     
     if (wr_err == ERR_OK)
@@ -276,6 +303,7 @@ static void tcp_echoclient_send(struct tcp_pcb *tpcb, struct echoclient * es)
      /* other problem ?? */
    }
   }
+  BSP_LED_Off(LED_BLUE);
 }
 
 /**

@@ -70,25 +70,25 @@
 									<listOptionValue builtIn="false" value="CORE_CM7"/>
 									<listOptionValue builtIn="false" value="LWIP_DEBUG=1"/>
 									<listOptionValue builtIn="false" value="LWIP_NETIF_STATUS_CALLBACK=1"/>
-									<listOptionValue builtIn="false" value="ETHARP_DEBUG=LWIP_DBG_ON"/>
+									<listOptionValue builtIn="false" value="ETHARP_DEBUG=LWIP_DBG_OFF"/>
 									<listOptionValue builtIn="false" value="TCP_DEBUG=LWIP_DBG_ON"/>
 									<listOptionValue builtIn="false" value="PBUF_DEBUG=LWIP_DBG_OFF"/>
 									<listOptionValue builtIn="false" value="LWIP_DBG_MIN_LEVEL=LWIP_DBG_LEVEL_ALL"/>
 									<listOptionValue builtIn="false" value="LWIP_AUTOIP=0"/>
 									<listOptionValue builtIn="false" value="IP_DEBUG=LWIP_DBG_OFF"/>
-									<listOptionValue builtIn="false" value="TCP_OUTPUT_DEBUG=LWIP_DBG_ON"/>
-									<listOptionValue builtIn="false" value="TCPIP_DEBUG=LWIP_DBG_ON"/>
-									<listOptionValue builtIn="false" value="TCP_INPUT_DEBUG=LWIP_DBG_ON"/>
+									<listOptionValue builtIn="false" value="TCP_OUTPUT_DEBUG=LWIP_DBG_OFF"/>
+									<listOptionValue builtIn="false" value="TCPIP_DEBUG=LWIP_DBG_OFF"/>
+									<listOptionValue builtIn="false" value="TCP_INPUT_DEBUG=LWIP_DBG_OFF"/>
 									<listOptionValue builtIn="false" value="NETIF_DEBUG=LWIP_DBG_ON"/>
-									<listOptionValue builtIn="false" value="ICMP_DEBUG=LWIP_DBG_ON"/>
-									<listOptionValue builtIn="false" value="IGMP_DEBUG=LWIP_DBG_ON"/>
-									<listOptionValue builtIn="false" value="RAW_DEBUG=LWIP_DBG_ON"/>
-									<listOptionValue builtIn="false" value="TCP_QLEN_DEBUG=LWIP_DBG_ON"/>
-									<listOptionValue builtIn="false" value="TCP_RST_DEBUG=LWIP_DBG_ON"/>
-									<listOptionValue builtIn="false" value="TCP_FR_DEBUG=LWIP_DBG_ON"/>
-									<listOptionValue builtIn="false" value="TCP_RTO_DEBUG=LWIP_DBG_ON"/>
-									<listOptionValue builtIn="false" value="TCP_CWND_DEBUG=LWIP_DBG_ON"/>
-									<listOptionValue builtIn="false" value="TCP_WND_DEBUG=LWIP_DBG_ON"/>
+									<listOptionValue builtIn="false" value="ICMP_DEBUG=LWIP_DBG_OFF"/>
+									<listOptionValue builtIn="false" value="IGMP_DEBUG=LWIP_DBG_OFF"/>
+									<listOptionValue builtIn="false" value="RAW_DEBUG=LWIP_DBG_OFF"/>
+									<listOptionValue builtIn="false" value="TCP_QLEN_DEBUG=LWIP_DBG_OFF"/>
+									<listOptionValue builtIn="false" value="TCP_RST_DEBUG=LWIP_DBG_OFF"/>
+									<listOptionValue builtIn="false" value="TCP_FR_DEBUG=LWIP_DBG_OFF"/>
+									<listOptionValue builtIn="false" value="TCP_RTO_DEBUG=LWIP_DBG_OFF"/>
+									<listOptionValue builtIn="false" value="TCP_CWND_DEBUG=LWIP_DBG_OFF"/>
+									<listOptionValue builtIn="false" value="TCP_WND_DEBUG=LWIP_DBG_OFF"/>
 									<listOptionValue builtIn="false" value="LWIP_CHECKSUM_ON_COPY=1"/>
 								</option>
 								<option IS_BUILTIN_EMPTY="false" IS_VALUE_EMPTY="true" id="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.option.otherflags.46903047" name="Other flags" superClass="com.st.stm32cube.ide.mcu.gnu.managedbuild.tool.c.compiler.option.otherflags" useByScannerDiscovery="true" valueType="stringList"/>
