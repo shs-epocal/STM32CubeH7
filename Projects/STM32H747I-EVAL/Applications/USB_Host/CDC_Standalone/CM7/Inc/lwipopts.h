@@ -100,6 +100,8 @@ a lot of data that needs to be copied, this should be set high. */
 */
 #define LWIP_NETIF_LINK_CALLBACK        1
 
+#define LWIP_NETIF_STATUS_CALLBACK      1
+
 /* ---------- TCP options ---------- */
 #define LWIP_TCP                1
 #define TCP_TTL                 255

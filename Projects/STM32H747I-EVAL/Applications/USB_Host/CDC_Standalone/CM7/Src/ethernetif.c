@@ -39,7 +39,7 @@
 
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-extern __IO uint8_t *rx_buffer_store;
+extern uint8_t *rx_buffer_store;
 extern __IO uint8_t size_rx_last;
 /* 
 @Note: This interface is implemented to operate in zero-copy mode only:
