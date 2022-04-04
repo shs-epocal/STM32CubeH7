@@ -108,7 +108,7 @@ bool enqueue(node_t **head, struct pbuf* val) {
    return true;
 }
 
-int dequeue(node_t **head) {
+struct pbuf* dequeue(node_t **head) {
    node_t *current, *prev = NULL;
    struct pbuf* retval = NULL;
 
