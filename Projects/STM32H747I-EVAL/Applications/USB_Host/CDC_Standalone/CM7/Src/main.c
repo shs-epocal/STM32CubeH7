@@ -31,10 +31,9 @@
 #include "app_ethernet.h"
 #include "tcp_echoclient.h"
 #include "stm32h7xx_hal_eth.h"
-#include "ringbuf.h"
 #include "circular_buffer.h"
 
-extern void initialise_monitor_handles(void);
+//extern void initialise_monitor_handles(void);
 
 /* Private typedef ----------------------------------------------------------- */
 /* Private define ------------------------------------------------------------ */
@@ -66,7 +65,7 @@ uint8_t size_noti_last;
 bool connect_tcp = false;
 
 static uint32_t source_array_size = 0;
-static volatile uint8_t source_array[RX_BUFFER_SIZE];
+static uint8_t source_array[RX_BUFFER_SIZE];
 static volatile uint8_t prev_packet_size = 0;
 
 bool full_multipacket = false;
@@ -108,7 +107,7 @@ bool enqueue(node_t **head, struct pbuf* val) {
    return true;
 }
 
-int dequeue(node_t **head) {
+struct pbuf* dequeue(node_t **head) {
    node_t *current, *prev = NULL;
    struct pbuf* retval = NULL;
 
@@ -166,7 +165,7 @@ netif_init(struct netif *netif)
 	return ERR_OK;
 }
 
-static volatile struct netif netif;
+static struct netif netif;
 
 bool updatePacketFilter;
 
@@ -178,7 +177,7 @@ bool updatePacketFilter;
 int main(void)
 {
   int32_t timeout;
-  initialise_monitor_handles();
+//  initialise_monitor_handles();
   /* This project calls firstly two functions in order to configure MPU feature
   and to enable the CPU Cache, respectively MPU_Config() and CPU_CACHE_Enable()*/
 
