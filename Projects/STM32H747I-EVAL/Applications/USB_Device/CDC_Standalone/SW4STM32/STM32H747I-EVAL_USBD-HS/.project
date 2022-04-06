@@ -20,10 +20,10 @@
 	</buildSpec>
 	<natures>
 		<nature>org.eclipse.cdt.core.cnature</nature>
-		<nature>org.eclipse.cdt.managedbuilder.core.managedBuildNature</nature>
+		<nature>com.st.stm32cube.ide.mcu.MCUMultiCpuProjectNature</nature>
 		<nature>org.eclipse.cdt.managedbuilder.core.ScannerConfigNature</nature>
-		<nature>fr.ac6.mcu.ide.core.MCUProjectNature</nature>
-		<nature>fr.ac6.mcu.ide.core.MCUMultiCoreProjectNature</nature>
+		<nature>com.st.stm32cube.ide.mcu.MCUSW4STM32ConvertedProjectNature</nature>
+		<nature>org.eclipse.cdt.managedbuilder.core.managedBuildNature</nature>
 	</natures>
 	<linkedResources>
 		<link>
@@ -220,6 +220,16 @@
 			<name>Middlewares/STM32_USBD_Library/Class/CDC/usbd_cdc.c</name>
 			<type>1</type>
 			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Src/usbd_cdc.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/STM32_USBD_Library/Class/CDC_ECM/usbd_cdc_ecm.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/ST/STM32_USB_Device_Library/Class/CDC_ECM/Src/usbd_cdc_ecm.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/STM32_USBD_Library/Class/CDC_ECM/usbd_cdc_ecm_if_template.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/ST/STM32_USB_Device_Library/Class/CDC_ECM/Src/usbd_cdc_ecm_if_template.c</locationURI>
 		</link>
 	</linkedResources>
 </projectDescription>

@@ -167,15 +167,15 @@ __ALIGN_BEGIN static uint8_t USBD_CDC_ECM_CfgHSDesc[] __ALIGN_END =
 
   /*---------------------------------------------------------------------------*/
 
-  /* IAD descriptor */
-  0x08,                                     /* bLength */
-  0x0B,                                     /* bDescriptorType */
-  0x00,                                     /* bFirstInterface */
-  0x02,                                     /* bInterfaceCount */
-  0x02,                                     /* bFunctionClass (Wireless Controller) */
-  0x06,                                     /* bFunctionSubClass */
-  0x00,                                     /* bFunctionProtocol */
-  0x00,                                     /* iFunction */
+//  /* IAD descriptor */
+//  0x08,                                     /* bLength */
+//  0x0B,                                     /* bDescriptorType */
+//  0x00,                                     /* bFirstInterface */
+//  0x02,                                     /* bInterfaceCount */
+//  0x02,                                     /* bFunctionClass (Wireless Controller) */
+//  0x06,                                     /* bFunctionSubClass */
+//  0x00,                                     /* bFunctionProtocol */
+//  0x00,                                     /* iFunction */
 
   /* Interface Descriptor */
   0x09,                                     /* bLength: Interface Descriptor size */
@@ -195,6 +195,13 @@ __ALIGN_BEGIN static uint8_t USBD_CDC_ECM_CfgHSDesc[] __ALIGN_END =
   0x10,                                     /* bcd CDC_ECM: spec release number: 1.10 */
   0x01,
 
+  /* Union Functional Descriptor */
+  0x05,                                     /* bFunctionLength */
+  0x24,                                     /* bDescriptorType: CS_INTERFACE */
+  0x06,                                     /* bDescriptorSubtype: Union functional descriptor */
+  0x00,                                     /* bMasterInterface: Communication class interface */
+  0x01,                                     /* bSlaveInterface0: Data Class Interface */
+
   /* CDC_ECM Functional Descriptor */
   0x0D,                                     /* bFunctionLength */
   0x24,                                     /* bDescriptorType: CS_INTERFACE */
@@ -209,13 +216,6 @@ __ALIGN_BEGIN static uint8_t USBD_CDC_ECM_CfgHSDesc[] __ALIGN_END =
   LOBYTE(CDC_ECM_ETH_NBR_MACFILTERS),
   HIBYTE(CDC_ECM_ETH_NBR_MACFILTERS),       /* wNumberMCFilters: the number of multicast filters */
   CDC_ECM_ETH_NBR_PWRFILTERS,               /* bNumberPowerFilters: the number of wakeup power filters */
-
-  /* Union Functional Descriptor */
-  0x05,                                     /* bFunctionLength */
-  0x24,                                     /* bDescriptorType: CS_INTERFACE */
-  0x06,                                     /* bDescriptorSubtype: Union functional descriptor */
-  0x00,                                     /* bMasterInterface: Communication class interface */
-  0x01,                                     /* bSlaveInterface0: Data Class Interface */
 
   /* Communication Endpoint Descriptor */
   0x07,                                     /* bLength: Endpoint Descriptor size */
@@ -233,11 +233,22 @@ __ALIGN_BEGIN static uint8_t USBD_CDC_ECM_CfgHSDesc[] __ALIGN_END =
   USB_DESC_TYPE_INTERFACE,                  /* bDescriptorType: */
   CDC_ECM_COM_ITF_NBR,                      /* bInterfaceNumber: Number of Interface */
   0x00,                                     /* bAlternateSetting: Alternate setting */
-  0x02,                                     /* bNumEndpoints: Two endpoints used */
+  0x00,                                     /* bNumEndpoints: Two endpoints used */
   0x0A,                                     /* bInterfaceClass: CDC */
   0x00,                                     /* bInterfaceSubClass: */
   0x00,                                     /* bInterfaceProtocol: */
   0x00,                                     /* iInterface: */
+
+  /* Data class interface descriptor */
+  0x09,                                     /* bLength: Endpoint Descriptor size */
+  USB_DESC_TYPE_INTERFACE,                  /* bDescriptorType: */
+  CDC_ECM_COM_ITF_NBR,                      /* bInterfaceNumber: Number of Interface */
+  0x01,                                     /* bAlternateSetting: Alternate setting */
+  0x02,                                     /* bNumEndpoints: Two endpoints used */
+  0x0A,                                     /* bInterfaceClass: CDC */
+  0x00,                                     /* bInterfaceSubClass: */
+  0x00,                                     /* bInterfaceProtocol: */
+  0x04,                                     /* iInterface: */
 
   /* Endpoint OUT Descriptor */
   0x07,                                     /* bLength: Endpoint Descriptor size */

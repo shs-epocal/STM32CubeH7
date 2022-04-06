@@ -25,6 +25,8 @@
 #include "usbd_core.h"
 #include "usbd_desc.h"
 #include "usbd_cdc.h"
+#include "usbd_cdc_ecm.h"
+#include "usbd_cdc_ecm_if_template.h"
 #include "stm32h747i_eval.h"
 #include "usbd_cdc_interface.h"
 

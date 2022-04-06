@@ -23,8 +23,10 @@
 
 /* Private typedef ----------------------------------------------------------- */
 /* Private define ------------------------------------------------------------ */
-#define USBD_VID                      0x0483
-#define USBD_PID                      0x5740
+//#define USBD_VID                      0x0483
+//#define USBD_PID                      0x5740
+#define USBD_VID                      0x0525
+#define USBD_PID                      0xa4a1
 #define USBD_LANGID_STRING            0x409
 #define USBD_MANUFACTURER_STRING      "STMicroelectronics"
 #define USBD_PRODUCT_HS_STRING        "STM32 Virtual ComPort in HS Mode"

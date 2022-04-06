@@ -66,7 +66,7 @@ extern "C" {
 #endif /* USBD_MAX_POWER */
 
 #ifndef USBD_SUPPORT_USER_STRING_DESC
-#define USBD_SUPPORT_USER_STRING_DESC                   0U
+#define USBD_SUPPORT_USER_STRING_DESC                   1U
 #endif /* USBD_SUPPORT_USER_STRING_DESC */
 
 #ifndef USBD_CLASS_USER_STRING_DESC
