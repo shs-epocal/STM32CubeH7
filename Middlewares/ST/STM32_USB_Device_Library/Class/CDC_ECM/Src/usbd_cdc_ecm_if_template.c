@@ -25,6 +25,7 @@
 
 */
 
+
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
@@ -205,8 +206,21 @@ static int8_t CDC_ECM_Itf_Receive(uint8_t *Buf, uint32_t *Len)
   /* Call Eth buffer processing */
   hcdc_cdc_ecm->RxState = 1U;
 
-  UNUSED(Len);
-  UNUSED(Buf);
+  uint32_t LenStar = *Len;
+
+  //when ethernet frame received send to ecm host to transmit
+  if (LenStar < TX_BUFFER_SIZE)
+  {
+	  for (int i = 0; i < LenStar; i++)
+	  {
+		  circular_buf_put(tx_circ_buf, Buf[i]);
+	  }
+	  flag_tx_data_ready = true;
+	  tx_size_received = LenStar;
+  }
+
+  *Len = 0;
+  USBD_CDC_ECM_ReceivePacket(&USBD_Device);
 
   return (0);
 }
