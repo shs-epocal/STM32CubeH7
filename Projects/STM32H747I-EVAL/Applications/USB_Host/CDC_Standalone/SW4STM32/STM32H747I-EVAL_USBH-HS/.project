@@ -117,6 +117,21 @@
 			<location>C:/Users/Z004FC4Z/STM32CubeH7_epocal/Projects/STM32H747I-EVAL/Applications/USB_Host/CDC_Standalone/CM7/Src/tcp_echoclient.c</location>
 		</link>
 		<link>
+			<name>Application/CM7/usbd_cdc_interface.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/CM7/Src/usbd_cdc_interface.c</locationURI>
+		</link>
+		<link>
+			<name>Application/CM7/usbd_conf.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/CM7/Src/usbd_conf.c</locationURI>
+		</link>
+		<link>
+			<name>Application/CM7/usbd_desc.c</name>
+			<type>1</type>
+			<locationURI>PARENT-2-PROJECT_LOC/CM7/Src/usbd_desc.c</locationURI>
+		</link>
+		<link>
 			<name>Application/CM7/usbh_conf.c</name>
 			<type>1</type>
 			<locationURI>PARENT-2-PROJECT_LOC/CM7/Src/usbh_conf.c</locationURI>
@@ -222,6 +237,16 @@
 			<locationURI>PARENT-7-PROJECT_LOC/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_mdma.c</locationURI>
 		</link>
 		<link>
+			<name>Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_pcd.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_pcd.c</locationURI>
+		</link>
+		<link>
+			<name>Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_pcd_ex.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_pcd_ex.c</locationURI>
+		</link>
+		<link>
 			<name>Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_pwr.c</name>
 			<type>1</type>
 			<locationURI>PARENT-7-PROJECT_LOC/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_pwr.c</locationURI>
@@ -260,6 +285,16 @@
 			<name>Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_sdram.c</name>
 			<type>1</type>
 			<locationURI>PARENT-7-PROJECT_LOC/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_sdram.c</locationURI>
+		</link>
+		<link>
+			<name>Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_spi.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_spi.c</locationURI>
+		</link>
+		<link>
+			<name>Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_spi_ex.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Drivers/STM32H7xx_HAL_Driver/Src/stm32h7xx_hal_spi_ex.c</locationURI>
 		</link>
 		<link>
 			<name>Drivers/STM32H7xx_HAL_Driver/stm32h7xx_hal_sram.c</name>
@@ -507,6 +542,21 @@
 			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/Third_Party/LwIP/src/netif/ethernet.c</locationURI>
 		</link>
 		<link>
+			<name>Middlewares/STM32_USBD_Library/Core/usbd_core.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_core.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/STM32_USBD_Library/Core/usbd_ctlreq.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_ctlreq.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/STM32_USBD_Library/Core/usbd_ioreq.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_ioreq.c</locationURI>
+		</link>
+		<link>
 			<name>Middlewares/STM32_USBH_Library/Core/usbh_core.c</name>
 			<type>1</type>
 			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/ST/STM32_USB_Host_Library/Core/Src/usbh_core.c</locationURI>
@@ -567,12 +617,27 @@
 			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/Third_Party/LwIP/src/core/ipv4/ip4_frag.c</locationURI>
 		</link>
 		<link>
+			<name>Middlewares/STM32_USBD_Library/Class/CDC/usbd_cdc.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Src/usbd_cdc.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/STM32_USBD_Library/Class/CDC_ECM/usbd_cdc_ecm.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/ST/STM32_USB_Device_Library/Class/CDC_ECM/Src/usbd_cdc_ecm.c</locationURI>
+		</link>
+		<link>
+			<name>Middlewares/STM32_USBD_Library/Class/CDC_ECM/usbd_cdc_ecm_if_template.c</name>
+			<type>1</type>
+			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/ST/STM32_USB_Device_Library/Class/CDC_ECM/Src/usbd_cdc_ecm_if_template.c</locationURI>
+		</link>
+		<link>
 			<name>Middlewares/STM32_USBH_Library/Class/CDC/usbh_cdc.c</name>
 			<type>1</type>
 			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/ST/STM32_USB_Host_Library/Class/CDC/Src/usbh_cdc.c</locationURI>
 		</link>
 		<link>
-			<name>Middlewares/STM32_USBH_Library/Class/CDC-ECM/usbh_cdc-ecm.c</name>
+			<name>Middlewares/STM32_USBH_Library/Class/CDC_ECM/usbh_cdc-ecm.c</name>
 			<type>1</type>
 			<locationURI>PARENT-7-PROJECT_LOC/Middlewares/ST/STM32_USB_Host_Library/Class/CDC-ECM/Src/usbh_cdc-ecm.c</locationURI>
 		</link>

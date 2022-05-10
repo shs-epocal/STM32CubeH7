@@ -22,6 +22,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "stdio.h"
+#include <stdbool.h>
 #include "usbh_core.h"
 #include "stm32h747i_eval.h"
 #include "stm32h747i_eval_io.h"
@@ -37,6 +38,15 @@
 #include "utilities_conf.h"
 #include "lwipopts.h"
 
+#include "usbd_core.h"
+#include "usbd_desc.h"
+#include "usbd_cdc.h"
+#include "usbd_cdc_ecm.h"
+#include "usbd_cdc_ecm_if_template.h"
+#include "usbd_cdc_interface.h"
+#include "stm32h7xx_hal_eth.h"
+#include "circular_buffer.h"
+
 
 /* Exported constants --------------------------------------------------------*/
 #define FILEMGR_LIST_DEPDTH                     24
@@ -45,6 +55,9 @@
 #define FILEMGR_MAX_LEVEL                        4
 #define FILETYPE_DIR                             0
 #define FILETYPE_FILE                            1
+
+#define RX_BUFFER_SIZE ETH_MAX_PACKET_SIZE
+#define TX_BUFFER_SIZE ETH_MAX_PACKET_SIZE
 
 /* Exported types ------------------------------------------------------------*/
 typedef enum {
@@ -138,7 +151,7 @@ extern uint8_t *DEMO_SEND_menu[];
 #define DEST_IP_ADDR0   ((uint8_t)192U)
 #define DEST_IP_ADDR1   ((uint8_t)168U)
 #define DEST_IP_ADDR2   ((uint8_t)0U)
-#define DEST_IP_ADDR3   ((uint8_t)102U)
+#define DEST_IP_ADDR3   ((uint8_t)101U)
 
 #define DEST_PORT       ((uint16_t)8080U)
 

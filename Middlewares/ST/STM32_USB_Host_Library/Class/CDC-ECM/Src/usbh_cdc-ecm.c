@@ -398,15 +398,15 @@ static USBH_StatusTypeDef USBH_CDC_ECM_ClassRequest(USBH_HandleTypeDef *phost)
   USBH_ParseECMDesc(&CDC_Handle->CDC_Desc, &phost->device.CfgDesc, phost->device.CfgDesc_Raw);
 
   //setting up the queue
-  enqueue(&state_queue_head, (int)CDC_ECM_SET_ALT_INTERFACE);
-  enqueue(&eth_packet_queue_head, 12U);
-  enqueue(&state_queue_head, (int)CDC_ECM_SET_ETH_PACKET_FILTER);
-  enqueue(&string_descriptor_index_head, CDC_Handle->CDC_Desc.CDC_EthernetNetworkingFuncDesc.iMACAddress);
-  enqueue(&state_queue_head, (int)CDC_ECM_GET_STRING_DESCRIPTOR);
-
-  enqueue(&state_queue_head, (int)CDC_ECM_CONTINUE_FOREVER);
-  enqueue(&state_queue_head, (int)CDC_ECM_LISTEN_NOTIFICATIONS);
-
+//  enqueue(&state_queue_head, (int)CDC_ECM_SET_ALT_INTERFACE);
+//  enqueue(&eth_packet_queue_head, 12U);
+//  enqueue(&state_queue_head, (int)CDC_ECM_SET_ETH_PACKET_FILTER);
+//  enqueue(&string_descriptor_index_head, CDC_Handle->CDC_Desc.CDC_EthernetNetworkingFuncDesc.iMACAddress);
+//  enqueue(&state_queue_head, (int)CDC_ECM_GET_STRING_DESCRIPTOR);
+//
+//  enqueue(&state_queue_head, (int)CDC_ECM_CONTINUE_FOREVER);
+//  enqueue(&state_queue_head, (int)CDC_ECM_LISTEN_NOTIFICATIONS);
+  CDC_Handle->state = CDC_ECM_SET_ALT_INTERFACE;
   status = USBH_OK;
   return status;
 }
@@ -481,12 +481,6 @@ static USBH_StatusTypeDef USBH_CDC_ECM_Process(USBH_HandleTypeDef *phost)
   USBH_StatusTypeDef req_status = USBH_OK;
   CDC_ECM_HandleTypeDef *CDC_Handle = (CDC_ECM_HandleTypeDef *) phost->pActiveClass->pData;
 
-  if (firstCasePass)
-  {
-	  CDC_Handle->state = (CDC_ECM_StateTypeDef)dequeue(&state_queue_head);
-	  firstCasePass = false;
-  }
-
   if ((int)CDC_Handle->state <0)
   {
 	  CDC_Handle->state = CDC_ECM_ERROR_STATE;
@@ -499,26 +493,21 @@ static USBH_StatusTypeDef USBH_CDC_ECM_Process(USBH_HandleTypeDef *phost)
       break;
 
     case CDC_ECM_GET_STRING_DESCRIPTOR:
-    	if (firstPass)
-    	{
-        	CDC_Handle->string_desc_index = (uint8_t)dequeue(&string_descriptor_index_head);
-        	firstPass = false;
-        	CDC_Handle->string_desc_len = 255;
-    	}
+    	CDC_Handle->string_desc_index = CDC_Handle->CDC_Desc.CDC_EthernetNetworkingFuncDesc.iMACAddress;
+    	CDC_Handle->string_desc_len = 255;
     	req_status = USBH_Get_StringDesc(phost,
                 CDC_Handle->string_desc_index, CDC_Handle->pRxData,
                 CDC_Handle->string_desc_len);
     	if (req_status == USBH_OK)
     	{
     		status = USBH_OK;
-    		firstPass = true;
 
     		if (CDC_Handle->string_desc_index == CDC_Handle->CDC_Desc.CDC_EthernetNetworkingFuncDesc.iMACAddress)
     		{
     			parseMACAddress((char*)CDC_Handle->pRxData, CDC_Handle->mac_address, strlen((char*)CDC_Handle->pRxData));
+    			CDC_Handle->state = CDC_ECM_CONTINUE_FOREVER;
     		}
 
-			firstCasePass = true;
     	}
 
     	else
@@ -535,7 +524,7 @@ static USBH_StatusTypeDef USBH_CDC_ECM_Process(USBH_HandleTypeDef *phost)
 
     	if (req_status == USBH_OK)
     	{
-			firstCasePass = true;
+    		CDC_Handle->state = CDC_ECM_STATE_SET_ETH_PACKET_FILTER;
     	}
 
     	else
@@ -547,18 +536,14 @@ static USBH_StatusTypeDef USBH_CDC_ECM_Process(USBH_HandleTypeDef *phost)
     	}
     	break;
 
-    case CDC_ECM_SET_ETH_PACKET_FILTER:
-    	if (firstEthPacketPass)
-    	{
-    		CDC_Handle->eth_packet_filter = (uint8_t)dequeue(&eth_packet_queue_head);
-        	firstEthPacketPass = false;
-    	}
+    case CDC_ECM_STATE_SET_ETH_PACKET_FILTER:
+
+    	CDC_Handle->eth_packet_filter = 12U;
 
     	req_status = SetEthPacketFilter(phost, CDC_Handle->eth_packet_filter);
     	if (req_status == USBH_OK)
     	{
-			firstCasePass = true;
-			firstEthPacketPass = true;
+    		CDC_Handle->state = CDC_ECM_GET_STRING_DESCRIPTOR;
     	}
     	else
     	{
@@ -578,25 +563,8 @@ static USBH_StatusTypeDef USBH_CDC_ECM_Process(USBH_HandleTypeDef *phost)
 			CDC_ProcessNotificationReception(phost);
 		}
 
-//		if (HAL_GetTick() - RxTimer >= 50)
-//		{
-//			RxTimer = HAL_GetTick();
-			CDC_ProcessReception(phost);
-//		}
-
+		CDC_ProcessReception(phost);
 		CDC_ProcessTransmission(phost);
-
-		if (updatePacketFilter)
-		{
-			enqueue(&eth_packet_queue_head, 12U);
-			enqueue(&state_queue_head, (int)CDC_ECM_SET_ETH_PACKET_FILTER);
-			updatePacketFilter = false;
-		}
-		if (continueForEver){
-			CDC_Handle->state = CDC_ECM_LISTEN_NOTIFICATIONS;
-			enqueue(&state_queue_head, (int)CDC_Handle->state);
-		}
-		firstCasePass = true;
 		break;
 
     case CDC_ECM_TRANSFER_DATA:
@@ -609,8 +577,7 @@ static USBH_StatusTypeDef USBH_CDC_ECM_Process(USBH_HandleTypeDef *phost)
 
     case CDC_ECM_CONTINUE_FOREVER:
     	phost->pUser(phost, HOST_USER_CLASS_ACTIVE);
-    	continueForEver = true;
-		firstCasePass = true;
+    	CDC_Handle->state = CDC_ECM_LISTEN_NOTIFICATIONS;
     	break;
 
     case CDC_ECM_ERROR_STATE:
@@ -630,6 +597,161 @@ static USBH_StatusTypeDef USBH_CDC_ECM_Process(USBH_HandleTypeDef *phost)
 
   return status;
 }
+//static USBH_StatusTypeDef USBH_CDC_ECM_Process(USBH_HandleTypeDef *phost)
+//{
+//  USBH_StatusTypeDef status = USBH_BUSY;
+//  USBH_StatusTypeDef req_status = USBH_OK;
+//  CDC_ECM_HandleTypeDef *CDC_Handle = (CDC_ECM_HandleTypeDef *) phost->pActiveClass->pData;
+//
+//  if (firstCasePass)
+//  {
+//	  CDC_Handle->state = (CDC_ECM_StateTypeDef)dequeue(&state_queue_head);
+//	  firstCasePass = false;
+//  }
+//
+//  if ((int)CDC_Handle->state <0)
+//  {
+//	  CDC_Handle->state = CDC_ECM_ERROR_STATE;
+//  }
+//
+//  switch (CDC_Handle->state)
+//  {
+//    case CDC_ECM_IDLE_STATE:
+//      status = USBH_OK;
+//      break;
+//
+//    case CDC_ECM_GET_STRING_DESCRIPTOR:
+//    	if (firstPass)
+//    	{
+//        	CDC_Handle->string_desc_index = (uint8_t)dequeue(&string_descriptor_index_head);
+//        	firstPass = false;
+//        	CDC_Handle->string_desc_len = 255;
+//    	}
+//    	req_status = USBH_Get_StringDesc(phost,
+//                CDC_Handle->string_desc_index, CDC_Handle->pRxData,
+//                CDC_Handle->string_desc_len);
+//    	if (req_status == USBH_OK)
+//    	{
+//    		status = USBH_OK;
+//    		firstPass = true;
+//
+//    		if (CDC_Handle->string_desc_index == CDC_Handle->CDC_Desc.CDC_EthernetNetworkingFuncDesc.iMACAddress)
+//    		{
+//    			parseMACAddress((char*)CDC_Handle->pRxData, CDC_Handle->mac_address, strlen((char*)CDC_Handle->pRxData));
+//    		}
+//
+//			firstCasePass = true;
+//    	}
+//
+//    	else
+//    	{
+//    		if (req_status != USBH_BUSY)
+//    		{
+//    			CDC_Handle->state = CDC_ECM_ERROR_STATE;
+//    		}
+//    	}
+//    	break;
+//
+//    case CDC_ECM_SET_ALT_INTERFACE:
+//    	req_status = USBH_SetInterface(phost, 1U, 1U);
+//
+//    	if (req_status == USBH_OK)
+//    	{
+//			firstCasePass = true;
+//    	}
+//
+//    	else
+//    	{
+//    		if (req_status != USBH_BUSY)
+//    		{
+//    			CDC_Handle->state = CDC_ECM_ERROR_STATE;
+//    		}
+//    	}
+//    	break;
+//
+//    case CDC_ECM_SET_ETH_PACKET_FILTER:
+//    	if (firstEthPacketPass)
+//    	{
+//    		CDC_Handle->eth_packet_filter = (uint8_t)dequeue(&eth_packet_queue_head);
+//        	firstEthPacketPass = false;
+//    	}
+//
+//    	req_status = SetEthPacketFilter(phost, CDC_Handle->eth_packet_filter);
+//    	if (req_status == USBH_OK)
+//    	{
+//			firstCasePass = true;
+//			firstEthPacketPass = true;
+//    	}
+//    	else
+//    	{
+//    		if (req_status != USBH_BUSY)
+//    		{
+//    			CDC_Handle->state = CDC_ECM_ERROR_STATE;
+//    		}
+//    	}
+//    	break;
+//
+//	case CDC_ECM_LISTEN_NOTIFICATIONS:
+//		//Process notification at interval time
+//		//Interval is number of frames, in FS frame is 1ms
+//		if (HAL_GetTick() - NotificationInterruptTimer >= CDC_Handle->NotificationInterval * 1)
+//		{
+//			NotificationInterruptTimer = HAL_GetTick();
+//			CDC_ProcessNotificationReception(phost);
+//		}
+//
+////		if (HAL_GetTick() - RxTimer >= 50)
+////		{
+////			RxTimer = HAL_GetTick();
+//			CDC_ProcessReception(phost);
+////		}
+//
+//		CDC_ProcessTransmission(phost);
+//
+//		if (updatePacketFilter)
+//		{
+//			enqueue(&eth_packet_queue_head, 12U);
+//			enqueue(&state_queue_head, (int)CDC_ECM_SET_ETH_PACKET_FILTER);
+//			updatePacketFilter = false;
+//		}
+//		if (continueForEver){
+//			CDC_Handle->state = CDC_ECM_LISTEN_NOTIFICATIONS;
+//			enqueue(&state_queue_head, (int)CDC_Handle->state);
+//		}
+//		firstCasePass = true;
+//		break;
+//
+//    case CDC_ECM_TRANSFER_DATA:
+//		CDC_ProcessTransmission(phost);
+//		CDC_ProcessReception(phost);
+//
+//		firstCasePass = true;
+//    	status = USBH_OK;
+//    	break;
+//
+//    case CDC_ECM_CONTINUE_FOREVER:
+//    	phost->pUser(phost, HOST_USER_CLASS_ACTIVE);
+//    	continueForEver = true;
+//		firstCasePass = true;
+//    	break;
+//
+//    case CDC_ECM_ERROR_STATE:
+//      req_status = USBH_ClrFeature(phost, 0x00U);
+//
+//      if (req_status == USBH_OK)
+//      {
+//        /*Change the state to waiting*/
+//        CDC_Handle->state = CDC_ECM_IDLE_STATE;
+//      }
+//      break;
+//
+//    default:
+//      break;
+//
+//  }
+//
+//  return status;
+//}
 
 /**
   * @brief  USBH_CDC_SOFProcess
@@ -787,7 +909,7 @@ USBH_StatusTypeDef  USBH_CDC_ECM_Receive(USBH_HandleTypeDef *phost, uint8_t *pbu
   {
     CDC_Handle->pRxData = pbuff;
     CDC_Handle->RxDataLength = length;
-    CDC_Handle->state = CDC_ECM_TRANSFER_DATA;
+    CDC_Handle->state = CDC_ECM_LISTEN_NOTIFICATIONS;
     CDC_Handle->data_rx_state = CDC_ECM_RECEIVE_DATA;
     Status = USBH_OK;
   }

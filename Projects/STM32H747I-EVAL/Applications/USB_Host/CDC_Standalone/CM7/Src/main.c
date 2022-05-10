@@ -18,7 +18,6 @@
 
 /* Includes ------------------------------------------------------------------ */
 #include "main.h"
-#include <stdbool.h>
 
 #include "lwip/opt.h"
 #include "lwip/init.h"
@@ -30,16 +29,17 @@
 #endif
 #include "app_ethernet.h"
 #include "tcp_echoclient.h"
-#include "stm32h7xx_hal_eth.h"
-#include "circular_buffer.h"
 
-//extern void initialise_monitor_handles(void);
+extern void initialise_monitor_handles(void);
+
+int __io_putchar(int ch) {
+    ITM_SendChar(ch);
+    return ch;
+}
 
 /* Private typedef ----------------------------------------------------------- */
 /* Private define ------------------------------------------------------------ */
 #define NOTIFICATION_BUFFER_SIZE 16
-#define RX_BUFFER_SIZE ETH_MAX_PACKET_SIZE
-#define TX_BUFFER_SIZE ETH_MAX_PACKET_SIZE
 #define IFNAME0 's'
 #define IFNAME1 't'
 
@@ -47,6 +47,7 @@
 
 /* Private macro ------------------------------------------------------------- */
 /* Private variables --------------------------------------------------------- */
+/*USB Host Private Variables*/
 USBH_HandleTypeDef hUSBHost;
 CDC_ApplicationTypeDef Appli_state = APPLICATION_IDLE;
 __IO CDC_ECM_APP_State cdc_ecm_app_state;
@@ -54,6 +55,14 @@ __IO CDC_ECM_APP_State cdc_ecm_app_state;
 uint8_t notification_buffer[NOTIFICATION_BUFFER_SIZE];
 uint8_t rx_buffer[RX_BUFFER_SIZE];
 uint8_t tx_buffer[TX_BUFFER_SIZE];
+
+uint8_t tx_buffer_update[TX_BUFFER_SIZE];
+
+volatile bool flag_tx_data_ready = false;
+uint32_t tx_size_received = 0;
+
+volatile bool flag_rx_data_ready = false;
+uint32_t rx_size_received = 0;
 
 volatile bool link_state_changed_status = false;
 
@@ -64,8 +73,8 @@ uint8_t size_noti_last;
 
 bool connect_tcp = false;
 
-static uint32_t source_array_size = 0;
-static uint8_t source_array[RX_BUFFER_SIZE];
+uint32_t source_array_size = 0;
+uint8_t source_array[RX_BUFFER_SIZE];
 static volatile uint8_t prev_packet_size = 0;
 
 bool full_multipacket = false;
@@ -73,9 +82,22 @@ bool full_multipacket = false;
 static uint8_t circular_buffer_storage_[RX_BUFFER_SIZE*2] = {0};
 static cbuf_handle_t handle_ = NULL;
 
+uint8_t tx_circ_buf_storage_[RX_BUFFER_SIZE*2] = {0};
+cbuf_handle_t tx_circ_buf = NULL;
+
+uint8_t rx_circ_buf_storage_[RX_BUFFER_SIZE*2] = {0};
+cbuf_handle_t rx_circ_buf = NULL;
+
+
 static uint8_t packet_size_order_in[4096];
 static uint32_t packet_order_index = 0;
 static uint32_t packet_order_index_read = 0;
+
+/*USB Host Private Variables*/
+/*USB Device Private Variables*/
+USBD_HandleTypeDef USBD_Device;
+extern PCD_HandleTypeDef hpcd;
+/*USB Device Private Variables*/
 
 /* Private function prototypes ----------------------------------------------- */
 static void SystemClock_Config(void);
@@ -177,7 +199,7 @@ bool updatePacketFilter;
 int main(void)
 {
   int32_t timeout;
-//  initialise_monitor_handles();
+  initialise_monitor_handles();
   /* This project calls firstly two functions in order to configure MPU feature
   and to enable the CPU Cache, respectively MPU_Config() and CPU_CACHE_Enable()*/
 
@@ -239,78 +261,147 @@ int main(void)
   /* Enable the USB voltage level detector */
   HAL_PWREx_EnableUSBVoltageDetector();
 
+  /* Init Device Library */
+
+  /* Init Device Library */
+  USBD_Init(&USBD_Device, &VCP_Desc, 0);
+
+  /* Add Supported Class */
+  USBD_RegisterClass(&USBD_Device, USBD_CDC_ECM_CLASS);
+//  USBD_RegisterClass(&USBD_Device, USBD_CDC_CLASS);
+
+  /* Add CDC Interface Class */
+  USBD_CDC_ECM_RegisterInterface(&USBD_Device, &USBD_CDC_ECM_fops);
+//  USBD_CDC_ECM_RegisterInterface(&USBD_Device, &USBD_CDC_fops);
+
   /* Init Host Library */
   USBH_Init(&hUSBHost, USBH_UserProcess, 0);
 
   /* Add Supported Class */
   USBH_RegisterClass(&hUSBHost, USBH_CDC_ECM_CLASS);
 
-  lwip_init();
+//  lwip_init();
+
+  /* Start Device Process */
+  USBD_Start(&USBD_Device);
 
   /* Start Host Process */
   USBH_Start(&hUSBHost);
 
-  handle_ = circular_buf_init(circular_buffer_storage_, RX_BUFFER_SIZE*2);
+  handle_ = circular_buf_init(circular_buffer_storage_, RX_BUFFER_SIZE);
+
+  tx_circ_buf = circular_buf_init(tx_circ_buf_storage_, RX_BUFFER_SIZE);
+  rx_circ_buf = circular_buf_init(rx_circ_buf_storage_, RX_BUFFER_SIZE);
+
+  bool toggle_device_host = true;
 
   /* Run Application (Blocking mode) */
   while (1)
   {
-	  BSP_LED_Toggle(LED_GREEN);
-    /* USB Host Background task */
-    USBH_Process(&hUSBHost);
+//	  USBD_CDC_ECM_fops.Process(&USBD_Device);
+//	  __disable_irq();
+//
+//	  __enable_irq();
+//
+//	  if (toggle_device_host){
+//		  toggle_device_host = false;
+//		  HAL_NVIC_DisableIRQ(OTG_FS_IRQn);
 
-    USBH_CDC_ECM_Process(&hUSBHost);
+		  BSP_LED_Toggle(LED_GREEN);
+	    /* USB Host Background task */
+	    USBH_Process(&hUSBHost);
+
+	    USBH_CDC_ECM_Process(&hUSBHost);
+	    if (full_multipacket)
+	    {
+//	    	__disable_irq();
+	        int i = 0;
+
+	        while (i < source_array_size)
+	        {
+	        	uint8_t data;
+	        	circular_buf_get(handle_, &data);
+	        	source_array[i] = data;
+	        	i++;
+	        }
+
+	        //when ethernet frame received send to ecm host to transmit
+	        if (USBD_CDC_ECM_SetTxBuffer(&USBD_Device, source_array, source_array_size) == USBD_OK)
+	        {
+	            USBD_CDC_ECM_TransmitPacket(&USBD_Device);
+	        }
+	  		source_array_size = 0;
+			prev_packet_size = 0;
+			full_multipacket = false;
+			circular_buf_reset(handle_);
+//			HAL_NVIC_EnableIRQ(OTG_FS_IRQn);
+//	        __enable_irq();
+	    }
+//	  } else {
+//		  HAL_NVIC_DisableIRQ(OTG_HS_IRQn);
+
+		    if (flag_tx_data_ready)
+		    {
+//		    	__disable_irq();
+		    	uint8_t *temp = malloc(tx_size_received);
+		    	for (int i = 0; i < tx_size_received; i++)
+		    	{
+		    		uint8_t data;
+		    		circular_buf_get(tx_circ_buf, &data);
+		    		temp[i] = data;
+		    	}
+				  if(Appli_state == APPLICATION_READY)
+				  {
+					  USBH_CDC_ECM_Transmit(&hUSBHost, temp, tx_size_received);
+				  }
+		        flag_tx_data_ready = false;
+//		        __enable_irq();
+		    }
+//		    HAL_NVIC_EnableIRQ(OTG_HS_IRQn);
+//	  }
+
+
+
+//    if (flag_rx_data_ready)
+//    {
+//    	__disable_irq();
+//    	uint8_t *temp = malloc(rx_size_received);
+//    	for (int i = 0; i < rx_size_received; i++)
+//    	{
+//    		uint8_t data;
+//    		circular_buf_get(rx_circ_buf, &data);
+//    		temp[i] = data;
+//    	}
+//        USBH_CDC_ECM_Transmit(&hUSBHost, temp, rx_size_received);
+//        flag_rx_data_ready = false;
+//        __enable_irq();
+//    }
 
     /* Read a received packet from the Ethernet buffers and send it
        to the lwIP for handling */
 
-    if (full_multipacket)
-    {
-    	__disable_irq();
-        int i = 0;
 
-        while (i < source_array_size)
-        {
-        	uint8_t data;
-        	circular_buf_get(handle_, &data);
-        	source_array[i] = data;
-        	i++;
-        }
 
-        struct pbuf* p = pbuf_alloc(PBUF_RAW, source_array_size, PBUF_POOL);
-        if(p != NULL) {
-        	/* Copy ethernet frame into pbuf */
-        	pbuf_take(p, source_array, source_array_size);
-        	/* Put in a queue which is processed in main loop */
-    		if(!enqueue(&pbuf_queue_head, p)) {
-    		  /* queue is full -> packet loss */
-    		  pbuf_free(p);
-    		}
-        	source_array_size = 0;
-        	prev_packet_size = 0;
-        	full_multipacket = false;
-        	circular_buf_reset(handle_);
-        }
-        __enable_irq();
-    }
-
-    struct pbuf* p = (struct pbuf*)dequeue(&pbuf_queue_head);
-    if(p != NULL) {
-      if(netif.input(p, &netif) != ERR_OK) {
-        pbuf_free(p);
-      }
-    }
+//    struct pbuf* p = (struct pbuf*)dequeue(&pbuf_queue_head);
+//    if(p != NULL) {
+//      if(netif.input(p, &netif) != ERR_OK) {
+//        pbuf_free(p);
+//      }
+//    }
 
     /* Cyclic lwIP timers check */
-    sys_check_timeouts();
+//    sys_check_timeouts();
 
-#if LWIP_NETIF_LINK_CALLBACK
-    Ethernet_Link_Periodic_Handle(&netif,notification_buffer_store, size_noti_last);
-#endif
-
-#if LWIP_DHCP
-    DHCP_Periodic_Handle(&gnetif);
-#endif
+//#if LWIP_NETIF_LINK_CALLBACK
+//    Ethernet_Link_Periodic_Handle(&netif,notification_buffer_store, size_noti_last);
+//#endif
+//
+//#if LWIP_DHCP
+//    DHCP_Periodic_Handle(&gnetif);
+//#endif
+//	  __disable_irq();
+//	  HAL_NVIC_EnableIRQ(OTG_FS_IRQn);
+//	  __enable_irq();
     /* CDC Menu Process */
 //    CDC_MenuProcess();
   }
@@ -529,17 +620,17 @@ void USBH_CDC_ECM_Process(USBH_HandleTypeDef *phost)
 	  case CDC_ECM_APP_SETUP_STACK:
 		  if(Appli_state == APPLICATION_READY)
 		  {
-			  CDC_ECM_HandleTypeDef *CDC_Handle = (CDC_ECM_HandleTypeDef *) phost->pActiveClass->pData;
-
-			  /* set MAC hardware address */
-			  netif.hwaddr[0] =  CDC_Handle->mac_address[0];
-			  netif.hwaddr[1] =  CDC_Handle->mac_address[1];
-			  netif.hwaddr[2] =  CDC_Handle->mac_address[2];
-			  netif.hwaddr[3] =  CDC_Handle->mac_address[3];
-			  netif.hwaddr[4] =  CDC_Handle->mac_address[4];
-			  netif.hwaddr[5] =  CDC_Handle->mac_address[5];
-
-			  lwip_network_interface_setup();
+//			  CDC_ECM_HandleTypeDef *CDC_Handle = (CDC_ECM_HandleTypeDef *) phost->pActiveClass->pData;
+//
+//			  /* set MAC hardware address */
+//			  netif.hwaddr[0] =  CDC_Handle->mac_address[0];
+//			  netif.hwaddr[1] =  CDC_Handle->mac_address[1];
+//			  netif.hwaddr[2] =  CDC_Handle->mac_address[2];
+//			  netif.hwaddr[3] =  CDC_Handle->mac_address[3];
+//			  netif.hwaddr[4] =  CDC_Handle->mac_address[4];
+//			  netif.hwaddr[5] =  CDC_Handle->mac_address[5];
+//
+//			  lwip_network_interface_setup();
 			  cdc_ecm_app_state = CDC_ECM_APP_LINKED;
 		  }
 		  break;
@@ -562,6 +653,7 @@ void USBH_CDC_ECM_Process(USBH_HandleTypeDef *phost)
 }
 void USBH_CDC_ECM_ReceiveCallback(USBH_HandleTypeDef *phost)
 {
+	__disable_irq();
   /* Prevent unused argument(s) compilation warning */
 	  uint16_t size;
 	  size = USBH_CDC_ECM_GetLastReceivedDataSizeNoti(&hUSBHost);
@@ -572,6 +664,7 @@ void USBH_CDC_ECM_ReceiveCallback(USBH_HandleTypeDef *phost)
 	  }
 	  else
 		  size_noti_last = 0;
+	  __enable_irq();
 }
 
 void mergeArrays(uint8_t *arr1, uint8_t *arr2, uint8_t size1, uint8_t size2)
@@ -588,12 +681,14 @@ void mergeArrays(uint8_t *arr1, uint8_t *arr2, uint8_t size1, uint8_t size2)
 
 void USBH_CDC_ReceiveCallback(USBH_HandleTypeDef *phost)
 {
+	__disable_irq();
 	BSP_LED_Off(LED_ORANGE);
 	BSP_LED_Toggle(LED_GREEN);
 	uint16_t size = USBH_CDC_ECM_GetLastReceivedDataSize(&hUSBHost);
 
 	if (size >= 0){
-		packet_size_order_in[packet_order_index++] = size;
+//		printf("sz: %d\n", size);
+//		packet_size_order_in[packet_order_index++] = size;
 		int i = 0;
 		while (i < size)
 		{
@@ -601,7 +696,8 @@ void USBH_CDC_ReceiveCallback(USBH_HandleTypeDef *phost)
 			source_array_size++;
 			i++;
 		}
-
+//		printf("sa: %d\n", source_array_size);
+//		printf("--ps: %d--\n", prev_packet_size);
 		if ((prev_packet_size == 64 && size < 64)
 				|| (prev_packet_size == 64 && size < 1)
 				|| (prev_packet_size < 64 && size < 64))
@@ -610,12 +706,15 @@ void USBH_CDC_ReceiveCallback(USBH_HandleTypeDef *phost)
 		}
 		prev_packet_size = size;
 	}
+	__enable_irq();
 }
 
 void USBH_CDC_TransmitCallback(USBH_HandleTypeDef *phost)
 {
+	__disable_irq();
 	BSP_LED_On(LED_ORANGE);
 	USBH_CDC_ECM_Receive(&hUSBHost, rx_buffer, RX_BUFFER_SIZE);
+	__enable_irq();
 }
 
 /**

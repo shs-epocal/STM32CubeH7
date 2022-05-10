@@ -19,13 +19,31 @@
 /* Includes ------------------------------------------------------------------*/
 
 #include "usbd_cdc_ecm_if_template.h"
+#include "main.h"
 /*
 
   Include here  LwIP files if used
 
 */
 
+extern uint8_t *tx_buffer_update;
+extern uint8_t *rx_buffer;
 
+extern cbuf_handle_t tx_circ_buf;
+extern cbuf_handle_t rx_circ_buf;
+
+extern bool flag_tx_data_ready;
+extern uint32_t tx_size_received;
+
+extern bool flag_rx_data_ready;
+extern uint32_t rx_size_received;
+
+uint32_t NotificationInterruptTimer;
+
+static uint32_t ConnSpeedTab[2] = {CDC_ECM_CONNECT_SPEED_UPSTREAM,
+                                   CDC_ECM_CONNECT_SPEED_DOWNSTREAM
+                                  };
+static bool switch_notification = false;
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 /* Private macro -------------------------------------------------------------*/
@@ -211,12 +229,18 @@ static int8_t CDC_ECM_Itf_Receive(uint8_t *Buf, uint32_t *Len)
   //when ethernet frame received send to ecm host to transmit
   if (LenStar < TX_BUFFER_SIZE)
   {
-	  for (int i = 0; i < LenStar; i++)
+	  //TODO race condition exists with the way received packets are handled at the moment
+	  //fix based on USBComDriver
+	  if (!flag_tx_data_ready)
 	  {
-		  circular_buf_put(tx_circ_buf, Buf[i]);
+		  circular_buf_reset(tx_circ_buf);
+		  for (int i = 0; i < LenStar; i++)
+		  {
+			  circular_buf_put(tx_circ_buf, Buf[i]);
+		  }
+		  flag_tx_data_ready = true;
+		  tx_size_received = LenStar;
 	  }
-	  flag_tx_data_ready = true;
-	  tx_size_received = LenStar;
   }
 
   *Len = 0;
@@ -274,6 +298,30 @@ static int8_t CDC_ECM_Itf_Process(USBD_HandleTypeDef *pdev)
       to the lwIP for handling
       Call here the TCP/IP background tasks.
     */
+
+	//TODO delete this code, possibly not needed
+	//Process notification at interval time
+	//Interval is number of frames, in FS frame is 1ms
+	  uint32_t time_now = HAL_GetTick();
+	if (time_now - NotificationInterruptTimer >= CDC_ECM_FS_BINTERVAL * 1)
+	{
+		NotificationInterruptTimer = HAL_GetTick();
+
+		if (switch_notification)
+		{
+			(void)USBD_CDC_ECM_SendNotification(&USBD_Device, NETWORK_CONNECTION,
+												  CDC_ECM_NET_CONNECTED, NULL);
+		}
+		else
+		{
+		    (void)USBD_CDC_ECM_SendNotification(&USBD_Device, CONNECTION_SPEED_CHANGE,
+		                                          0U, (uint8_t *)ConnSpeedTab);
+		}
+
+		switch_notification = !switch_notification;
+	}
+
+
   }
 
   return (0);

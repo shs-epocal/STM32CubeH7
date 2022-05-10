@@ -90,7 +90,7 @@ static void CDC_DEMO_ProbeKey(uint32_t state)
   }
   else if (CdcSelectMode == CDC_SELECT_FILE)
   {
-    CDC_SendFile_ProbeKey(state);
+//    CDC_SendFile_ProbeKey(state);
   }
 }
 

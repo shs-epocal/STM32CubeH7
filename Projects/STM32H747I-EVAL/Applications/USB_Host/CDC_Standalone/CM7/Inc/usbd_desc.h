@@ -1,8 +1,8 @@
 /**
   ******************************************************************************
-  * @file    USB_Host/CDC_Standalone/Inc/stm32h7xx_it.h 
+  * @file    USB_Device/CDC_Standalone/CM7/Inc/usbd_desc.h
   * @author  MCD Application Team
-  * @brief   This file contains the headers of the interrupt handlers.
+  * @brief   Header for usbd_desc.c module
   ******************************************************************************
   * @attention
   *
@@ -17,41 +17,22 @@
   */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __stm32h7xx_IT_H
-#define __stm32h7xx_IT_H
-
-#ifdef __cplusplus
- extern "C" {
-#endif 
+#ifndef __USBD_DESC_H
+#define __USBD_DESC_H
 
 /* Includes ------------------------------------------------------------------*/
-#include "main.h"
+#include "usbd_def.h"
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
+#define         DEVICE_ID1          (0x5C001000)
+#define         DEVICE_ID2          (0x5C001004)
+#define         DEVICE_ID3          (0x5C001008)
+
+#define  USB_SIZ_STRING_SERIAL       0x1A
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
-void NMI_Handler(void);
-void HardFault_Handler(void);
-void MemManage_Handler(void);
-void BusFault_Handler(void);
-void UsageFault_Handler(void);
-void SVC_Handler(void);
-void DebugMon_Handler(void);
-void PendSV_Handler(void);
-void SysTick_Handler(void);
-void OTG_FS_IRQHandler(void);
-void OTG_HS_IRQHandler(void);
-void USARTx_DMA_TX_IRQHandler(void);
-void USARTx_IRQHandler(void);
-void TIMx_IRQHandler(void);
-void EXTI9_5_IRQHandler(void);
-void SDMMC1_IRQHandler(void);
-void EXTI15_10_IRQHandler(void);
+extern USBD_DescriptorsTypeDef VCP_Desc;
 
-#ifdef __cplusplus
-}
-#endif
-
-#endif /* __stm32h7xx_IT_H */
+#endif /* __USBD_DESC_H */
 

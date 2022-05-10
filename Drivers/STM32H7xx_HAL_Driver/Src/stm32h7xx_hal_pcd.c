@@ -2201,7 +2201,6 @@ static HAL_StatusTypeDef PCD_WriteEmptyTxFifo(PCD_HandleTypeDef *hpcd, uint32_t 
 	  //no multi packet
 	  fifoemptymsk = (uint32_t)(0x1UL << (epnum & EP_ADDR_MSK));
 	  USBx_DEVICE->DIEPEMPMSK &= ~fifoemptymsk;
-	  return HAL_ERROR;
   }
 
   return HAL_OK;

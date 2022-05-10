@@ -141,7 +141,7 @@ void HAL_HCD_MspInit(HCD_HandleTypeDef * hhcd)
     __HAL_RCC_USB1_OTG_HS_CLK_ENABLE();
 
     /* Set USBHS Interrupt priority */
-    HAL_NVIC_SetPriority(OTG_HS_IRQn, 6, 0);
+    HAL_NVIC_SetPriority(OTG_HS_IRQn, 15, 0);
 
     /* Enable USBHS Interrupt */
     HAL_NVIC_EnableIRQ(OTG_HS_IRQn);
@@ -248,27 +248,27 @@ void HAL_HCD_HC_NotifyURBChange_Callback(HCD_HandleTypeDef * hhcd,
   */
 USBH_StatusTypeDef USBH_LL_Init(USBH_HandleTypeDef * phost)
 {
-#ifdef USE_USB_FS
-  /* Set the LL Driver parameters */
-  hhcd.Instance = USB2_OTG_FS;
-  hhcd.Init.Host_channels = 11;
-  hhcd.Init.dma_enable = 0;
-  hhcd.Init.low_power_enable = 0;
-  hhcd.Init.phy_itface = HCD_PHY_EMBEDDED;
-  hhcd.Init.Sof_enable = 0;
-  hhcd.Init.speed = HCD_SPEED_FULL;
-  hhcd.Init.vbus_sensing_enable = 0;
-  hhcd.Init.lpm_enable = 0;
+//#ifdef USE_USBH_FS
+//  /* Set the LL Driver parameters */
+//  hhcd.Instance = USB2_OTG_FS;
+//  hhcd.Init.Host_channels = 11;
+//  hhcd.Init.dma_enable = 0;
+//  hhcd.Init.low_power_enable = 0;
+//  hhcd.Init.phy_itface = HCD_PHY_EMBEDDED;
+//  hhcd.Init.Sof_enable = 0;
+//  hhcd.Init.speed = HCD_SPEED_FULL;
+//  hhcd.Init.vbus_sensing_enable = 0;
+//  hhcd.Init.lpm_enable = 0;
+//
+//  /* Link the driver to the stack */
+//  hhcd.pData = phost;
+//  phost->pData = &hhcd;
+//
+//  /* Initialize the LL Driver */
+//  HAL_HCD_Init(&hhcd);
+//#endif
 
-  /* Link the driver to the stack */
-  hhcd.pData = phost;
-  phost->pData = &hhcd;
-
-  /* Initialize the LL Driver */
-  HAL_HCD_Init(&hhcd);
-#endif
-
-#ifdef USE_USB_HS
+#ifdef USE_USBH_HS
   /* Set the LL driver parameters */
   hhcd.Instance = USB1_OTG_HS;
   hhcd.Init.Host_channels = 11;
@@ -486,7 +486,7 @@ USBH_URBStateTypeDef USBH_LL_GetURBState(USBH_HandleTypeDef * phost,
   */
 USBH_StatusTypeDef USBH_LL_DriverVBUS(USBH_HandleTypeDef * phost, uint8_t state)
 {
-#ifdef USE_USB_FS
+#ifdef USE_USBH_FS
   if (state == 0)
   {
     /* Configure Low Charge pump */

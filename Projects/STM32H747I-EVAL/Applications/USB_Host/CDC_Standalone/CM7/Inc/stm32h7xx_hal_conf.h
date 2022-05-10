@@ -79,13 +79,14 @@
 /*#define HAL_SMARTCARD_MODULE_ENABLED */
 /*#define HAL_SMBUS_MODULE_ENABLED     */
 /*#define HAL_SPDIFRX_MODULE_ENABLED   */
-/*#define HAL_SPI_MODULE_ENABLED       */
+#define HAL_SPI_MODULE_ENABLED
 /*#define HAL_SRAM_MODULE_ENABLED      */
 /*#define HAL_SWPMI_MODULE_ENABLED     */
-/*#define HAL_TIM_MODULE_ENABLED       */
+#define HAL_TIM_MODULE_ENABLED
 #define HAL_UART_MODULE_ENABLED
 /*#define HAL_USART_MODULE_ENABLED     */
 /*#define HAL_WWDG_MODULE_ENABLED      */
+#define HAL_PCD_MODULE_ENABLED
 
 /* ########################## Oscillator Values adaptation ####################*/
 /**
@@ -176,6 +177,15 @@
   *        HAL drivers code
   */
 /* #define USE_FULL_ASSERT    1 */
+
+/* ################## SPI peripheral configuration ########################## */
+/**
+* @brief Used to activate CRC feature inside HAL SPI Driver
+*        Activated   (1U): CRC code is compiled within HAL SPI driver
+*        Deactivated (0U): CRC code excluded from HAL SPI driver
+*/
+
+#define USE_SPI_CRC                   1U
 
 
 /* Includes ------------------------------------------------------------------*/

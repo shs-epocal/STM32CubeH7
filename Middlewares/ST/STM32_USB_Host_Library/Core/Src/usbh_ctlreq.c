@@ -158,7 +158,7 @@ USBH_StatusTypeDef USBH_Get_CfgDescAtIndex(USBH_HandleTypeDef *phost,
                                    (USB_DESC_CONFIGURATION | index), pData, length)) == USBH_OK)
   {
     /* Commands successfully sent and Response Received  */
-    USBH_ParseCfgDesc(&phost->device.CfgDesc, pData, length);
+    USBH_ParseCfgDesc(phost, pData, length);
   }
 
   return status;
@@ -466,47 +466,52 @@ static USBH_StatusTypeDef USBH_ParseCfgDesc(USBH_HandleTypeDef *phost, uint8_t *
         ep_ix = 0U;
         pep = (USBH_EpDescTypeDef *)NULL;
 
-        while ((ep_ix < pif->bNumEndpoints) && (ptr < cfg_desc->wTotalLength))
+        //the ethernet usb adpaters have 2 definitions for the data interface
+        //one definition states that it has no endpoints, the other says that it does
+        if (pif->bNumEndpoints > 0)
         {
-          pdesc = USBH_GetNextDesc((uint8_t *)(void *)pdesc, &ptr);
+			while ((ep_ix < pif->bNumEndpoints) && (ptr < cfg_desc->wTotalLength))
+			{
+			  pdesc = USBH_GetNextDesc((uint8_t *)(void *)pdesc, &ptr);
 
-          if (pdesc->bDescriptorType == USB_DESC_TYPE_ENDPOINT)
-          {
-            /* Check if the endpoint is appartening to an audio streaming interface */
-            if ((pif->bInterfaceClass == 0x01U) && (pif->bInterfaceSubClass == 0x02U))
-            {
-              /* Check if it is supporting the USB AUDIO 01 class specification */
-              if ((pif->bInterfaceProtocol == 0x00U) && (pdesc->bLength != 0x09U))
-              {
-                pdesc->bLength = 0x09U;
-              }
-            }
-            /* Make sure that the endpoint descriptor's bLength is equal to
-               USB_ENDPOINT_DESC_SIZE for all other endpoints types */
-            else if (pdesc->bLength != USB_ENDPOINT_DESC_SIZE)
-            {
-              pdesc->bLength = USB_ENDPOINT_DESC_SIZE;
-            }
-            else
-            {
-              /* ... */
-            }
+			  if (pdesc->bDescriptorType == USB_DESC_TYPE_ENDPOINT)
+			  {
+				/* Check if the endpoint is appartening to an audio streaming interface */
+				if ((pif->bInterfaceClass == 0x01U) && (pif->bInterfaceSubClass == 0x02U))
+				{
+				  /* Check if it is supporting the USB AUDIO 01 class specification */
+				  if ((pif->bInterfaceProtocol == 0x00U) && (pdesc->bLength != 0x09U))
+				  {
+					pdesc->bLength = 0x09U;
+				  }
+				}
+				/* Make sure that the endpoint descriptor's bLength is equal to
+				   USB_ENDPOINT_DESC_SIZE for all other endpoints types */
+				else if (pdesc->bLength != USB_ENDPOINT_DESC_SIZE)
+				{
+				  pdesc->bLength = USB_ENDPOINT_DESC_SIZE;
+				}
+				else
+				{
+				  /* ... */
+				}
 
-            pep = &cfg_desc->Itf_Desc[if_ix].Ep_Desc[ep_ix];
+				pep = &cfg_desc->Itf_Desc[if_ix].Ep_Desc[ep_ix];
 
-            status = USBH_ParseEPDesc(phost, pep, (uint8_t *)(void *)pdesc);
+				status = USBH_ParseEPDesc(phost, pep, (uint8_t *)(void *)pdesc);
 
-            ep_ix++;
-          }
+				ep_ix++;
+			  }
+			}
+
+			/* Check if the required endpoint(s) data are parsed */
+			if (ep_ix < pif->bNumEndpoints)
+			{
+			  return USBH_NOT_SUPPORTED;
+			}
+
+			if_ix++;
         }
-
-        /* Check if the required endpoint(s) data are parsed */
-        if (ep_ix < pif->bNumEndpoints)
-        {
-          return USBH_NOT_SUPPORTED;
-        }
-
-        if_ix++;
       }
     }
 

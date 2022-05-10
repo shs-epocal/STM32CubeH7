@@ -497,6 +497,9 @@ static uint8_t USBD_CDC_ECM_Setup(USBD_HandleTypeDef *pdev,
           break;
 
         case USB_REQ_SET_INTERFACE:
+            ret = USBD_LL_FlushEP(pdev, CDC_ECM_IN_EP);
+            ret = USBD_LL_FlushEP(pdev, CDC_ECM_OUT_EP);
+            ret = USBD_LL_FlushEP(pdev, CDC_ECM_CMD_EP);
           if (pdev->dev_state != USBD_STATE_CONFIGURED)
           {
             USBD_CtlError(pdev, req);

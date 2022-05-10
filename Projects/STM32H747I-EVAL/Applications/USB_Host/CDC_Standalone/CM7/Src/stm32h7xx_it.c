@@ -20,6 +20,7 @@
 
 /* Includes ------------------------------------------------------------------ */
 #include "stm32h7xx_it.h"
+#include "main.h"
 
 /* Private typedef ----------------------------------------------------------- */
 /* Private define ------------------------------------------------------------ */
@@ -27,6 +28,13 @@
 /* Private variables --------------------------------------------------------- */
 extern HCD_HandleTypeDef hhcd;
 
+extern PCD_HandleTypeDef hpcd;
+
+/* UART handler declared in "usbd_cdc_interface.c" file */
+extern UART_HandleTypeDef UartHandle;
+
+/* TIM handler declared in "usbd_cdc_interface.c" file */
+extern TIM_HandleTypeDef TimHandle;
 /* Private function prototypes ----------------------------------------------- */
 /* Private functions --------------------------------------------------------- */
 
@@ -144,13 +152,14 @@ void SysTick_Handler(void)
   * @param  None
   * @retval None
   */
-#ifdef USE_USB_FS
-void OTG_FS_IRQHandler(void)
-#else
 void OTG_HS_IRQHandler(void)
-#endif
 {
   HAL_HCD_IRQHandler(&hhcd);
+}
+
+void OTG_FS_IRQHandler(void)
+{
+  HAL_PCD_IRQHandler(&hpcd);
 }
 
 /**
@@ -184,3 +193,47 @@ void EXTI15_10_IRQHandler(void)
 BSP_PB_IRQHandler(BUTTON_TAMPER);
 }
 
+/**
+  * @brief  This function handles DMA interrupt request.
+  * @param  None
+  * @retval None
+  */
+void USARTx_DMA_TX_IRQHandler(void)
+{
+  HAL_DMA_IRQHandler(UartHandle.hdmatx);
+}
+
+/**
+  * @brief  This function handles UART interrupt request.
+  * @param  None
+  * @retval None
+  */
+void USARTx_IRQHandler(void)
+{
+  HAL_UART_IRQHandler(&UartHandle);
+}
+
+/**
+  * @brief  This function handles TIM interrupt request.
+  * @param  None
+  * @retval None
+  */
+void TIMx_IRQHandler(void)
+{
+  HAL_TIM_IRQHandler(&TimHandle);
+}
+
+/**
+  * @brief  This function handles PPP interrupt request.
+  * @param  None
+  * @retval None
+  */
+/* void PPP_IRQHandler(void) { } */
+
+/**
+  * @}
+  */
+
+/**
+  * @}
+  */
