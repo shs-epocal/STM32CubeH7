@@ -29,10 +29,8 @@
 #include "stm32h747i_eval_sd.h"
 #include "stm32h747i_eval_sd.h"
 #include "usbh_cdc.h"
-#include "usbh_cdc-ecm.h"
+#include "usbh_cdc_ecm.h"
 #include "lcd.h"
-#include "ff_gen_drv.h"
-#include "sd_diskio.h"
 #include "lcd_trace.h"
 #include "stm32_lcd.h"
 #include "utilities_conf.h"
@@ -46,6 +44,7 @@
 #include "usbd_cdc_interface.h"
 #include "stm32h7xx_hal_eth.h"
 #include "circular_buffer.h"
+#include "cdc_ecm_tunnel.h"
 
 
 /* Exported constants --------------------------------------------------------*/
@@ -188,8 +187,6 @@ void CDC_SelectSettingsItem(uint8_t item);
 void CDC_MenuProcess(void);
 void CDC_Settings_ProbeKey(uint32_t state);
 void CDC_SendFile_ProbeKey(uint32_t state);
-uint8_t SD_StorageInit(void);
-FRESULT SD_StorageParse(void);
 void LCD_ClearTextZone(void);
 void GetDefaultConfiguration(void);
 #endif /* __MAIN_H */

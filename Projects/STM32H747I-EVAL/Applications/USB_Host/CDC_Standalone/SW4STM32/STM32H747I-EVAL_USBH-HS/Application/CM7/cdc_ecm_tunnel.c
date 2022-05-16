@@ -1,0 +1,305 @@
+/**
+  ******************************************************************************
+  * @file    cdc_ecm_tunnel.c
+  * @author  Hashem Alnader
+  * @brief   CDC ECM HS port to FS port Tunnel
+  ******************************************************************************
+  */
+
+
+/* Includes ------------------------------------------------------------------*/
+#include "cdc_ecm_tunnel.h"
+
+/* Private typedef -----------------------------------------------------------*/
+/* Private define ------------------------------------------------------------*/
+#define NOTIFICATION_BUFFER_SIZE 16
+#define RX_USB_BUFF 64
+#define RX_BUFFER_SIZE ETH_MAX_PACKET_SIZE
+#define TX_BUFFER_SIZE ETH_MAX_PACKET_SIZE
+/* Private macro -------------------------------------------------------------*/
+/* Private variables ---------------------------------------------------------*/
+CDC_ApplicationTypeDef Appli_state = APPLICATION_IDLE;
+CDC_ECM_APP_State cdc_ecm_app_state;
+
+uint8_t notification_buffer[NOTIFICATION_BUFFER_SIZE];
+uint8_t rx_buffer[RX_BUFFER_SIZE];
+uint8_t tx_buffer[TX_BUFFER_SIZE];
+
+volatile bool flag_tx_data_ready = false;
+uint32_t tx_size_received = 0;
+
+uint32_t source_array_size = 0;
+uint8_t source_array[RX_BUFFER_SIZE];
+static volatile uint8_t prev_packet_size = 0;
+
+bool full_multipacket = false;
+
+static uint8_t circular_buffer_storage_[RX_BUFFER_SIZE] = {0};
+static cbuf_handle_t host_in_buf = NULL;
+
+uint8_t tx_circ_buf_storage_[RX_BUFFER_SIZE] = {0};
+cbuf_handle_t tx_circ_buf = NULL;
+
+USBH_StatusTypeDef ReqStatus = USBH_BUSY;
+ENUM_StateTypeDef enumState = ENUM_GET_CFG_DESC;
+int config_index = 1; //start at one since config at index zero already gathered
+
+/* Private function prototypes -----------------------------------------------*/
+static void USBH_UserProcess(USBH_HandleTypeDef * phost, uint8_t id);
+static void USBH_CDC_ECM_UserProcess(USBH_HandleTypeDef *phost);
+/* Private functions ---------------------------------------------------------*/
+
+void CDC_ECM_Tunnel_Init(USBH_HandleTypeDef *USBH_Host, USBD_HandleTypeDef *USBD_Device)
+{
+	/* Init Device Library */
+	USBD_Init(USBD_Device, &VCP_Desc, 0);
+
+	/* Add Supported Class */
+	USBD_RegisterClass(USBD_Device, USBD_CDC_ECM_CLASS);
+
+	/* Add CDC Interface Class */
+	USBD_CDC_ECM_RegisterInterface(USBD_Device, &USBD_CDC_ECM_fops);
+
+	/* Init Host Library */
+	USBH_Init(USBH_Host, USBH_UserProcess, 0);
+
+	/* Add Supported Class */
+	USBH_RegisterClass(USBH_Host, USBH_CDC_ECM_CLASS);
+
+	/* Start Device Process */
+	USBD_Start(USBD_Device);
+
+	/* Start Host Process */
+	USBH_Start(USBH_Host);
+}
+
+void CDC_ECM_Tunnel_Buffer_Init(void)
+{
+	host_in_buf = circular_buf_init(circular_buffer_storage_, RX_BUFFER_SIZE);
+
+	tx_circ_buf = circular_buf_init(tx_circ_buf_storage_, RX_BUFFER_SIZE);
+}
+
+void CDC_ECM_Tunnel_Process(USBH_HandleTypeDef *USBH_Host, USBD_HandleTypeDef *USBD_Device)
+{
+	/* USB Host Background task */
+	USBH_Process(USBH_Host);
+
+	USBH_CDC_ECM_UserProcess(USBH_Host);
+	if (full_multipacket)
+	{
+	  int i = 0;
+
+	  while (i < source_array_size)
+	  {
+		  uint8_t data;
+		  circular_buf_get(host_in_buf, &data);
+		  source_array[i] = data;
+		  i++;
+	  }
+	  //when ethernet frame received send to ecm host to transmit
+	  if (USBD_CDC_ECM_SetTxBuffer(USBD_Device, source_array, source_array_size) == USBD_OK)
+	  {
+		  USBD_CDC_ECM_TransmitPacket(USBD_Device);
+	  }
+	  source_array_size = 0;
+	  prev_packet_size = 0;
+	  full_multipacket = false;
+	  circular_buf_reset(host_in_buf);
+	}
+	if (flag_tx_data_ready)
+	{
+	  uint8_t *temp = malloc(tx_size_received);
+	  for (int i = 0; i < tx_size_received; i++)
+	  {
+		  uint8_t data;
+		  circular_buf_get(tx_circ_buf, &data);
+		  temp[i] = data;
+	  }
+	  if(Appli_state == APPLICATION_READY)
+	  {
+		  USBH_CDC_ECM_Transmit(USBH_Host, temp, tx_size_received);
+	  }
+	  flag_tx_data_ready = false;
+	}
+}
+
+void USBH_CDC_ReceiveCallback(USBH_HandleTypeDef *phost)
+{
+	__disable_irq();
+	BSP_LED_Off(LED_ORANGE);
+	BSP_LED_Toggle(LED_GREEN);
+	uint16_t size = USBH_CDC_ECM_GetLastReceivedDataSize(&hUSBHost);
+
+	if (size >= 0){
+		int i = 0;
+		while (i < size)
+		{
+			circular_buf_put(host_in_buf, rx_buffer[i]);
+			source_array_size++;
+			i++;
+		}
+		if ((prev_packet_size == 64 && size < 64)
+				|| (prev_packet_size == 64 && size < 1)
+				|| (prev_packet_size < 64 && size < 64))
+		{
+			full_multipacket = true;
+		}
+		prev_packet_size = size;
+	}
+	__enable_irq();
+}
+
+void USBH_CDC_TransmitCallback(USBH_HandleTypeDef *phost)
+{
+	__disable_irq();
+	BSP_LED_On(LED_ORANGE);
+	USBH_CDC_ECM_Receive(&hUSBHost, rx_buffer, RX_BUFFER_SIZE);
+	__enable_irq();
+}
+
+/**
+* @brief  User Process
+* @param  phost: Host Handle
+* @param  id: Host Library user message ID
+* @retval None
+*/
+static void USBH_UserProcess(USBH_HandleTypeDef * phost, uint8_t id)
+{
+	  switch (id)
+	  {
+	  case HOST_USER_SELECT_CONFIGURATION:
+		  //since multiple configurations exist, must run back through enum steps
+		  //and get other configurations
+		  switch (enumState)
+		  {
+		  case ENUM_GET_CFG_DESC:
+			  ReqStatus = USBH_Get_CfgDescAtIndex(phost, USB_CONFIGURATION_DESC_SIZE, config_index);
+			  if (ReqStatus == USBH_OK)
+			  {
+				  enumState = ENUM_GET_FULL_CFG_DESC;
+			  }
+			  else if (ReqStatus == USBH_NOT_SUPPORTED)
+			  {
+				  USBH_ErrLog("Control error: Get Device configuration descriptor request failed");
+				  phost->device.EnumCnt++;
+				  if (phost->device.EnumCnt > 3U)
+				  {
+					  /* Buggy Device can't complete get device desc request */
+					  USBH_UsrLog("Control error, Device not Responding Please unplug the Device.");
+					  phost->gState = HOST_ABORT_STATE;
+					  enumState = ENUM_IDLE;
+				  }
+				  else
+				  {
+					  /* Free control pipes */
+					  USBH_FreePipe(phost, phost->Control.pipe_out);
+					  USBH_FreePipe(phost, phost->Control.pipe_in);
+
+					  /* Reset the USB Device */
+					  phost->gState = HOST_IDLE;
+					  enumState = ENUM_IDLE;
+				  }
+			  }
+			  else
+			  {
+				  /* .. */
+			  }
+			  break;
+		  case ENUM_GET_FULL_CFG_DESC:
+		      /* get FULL config descriptor (config, interface, endpoints) */
+		      ReqStatus = USBH_Get_CfgDescAtIndex(phost, phost->device.CfgDesc.wTotalLength, config_index);
+		      if (ReqStatus == USBH_OK)
+		      {
+		    	  phost->gState = HOST_SET_CONFIGURATION;
+		      }
+		      else if (ReqStatus == USBH_NOT_SUPPORTED)
+		      {
+		        USBH_ErrLog("Control error: Get Device configuration descriptor request failed");
+		        phost->device.EnumCnt++;
+		        if (phost->device.EnumCnt > 3U)
+		        {
+		          /* Buggy Device can't complete get device desc request */
+		          USBH_UsrLog("Control error, Device not Responding Please unplug the Device.");
+		          phost->gState = HOST_ABORT_STATE;
+		          enumState = ENUM_IDLE;
+		        }
+		        else
+		        {
+		          /* Free control pipes */
+		          USBH_FreePipe(phost, phost->Control.pipe_out);
+		          USBH_FreePipe(phost, phost->Control.pipe_in);
+
+		          /* Reset the USB Device */
+		          phost->gState = HOST_IDLE;
+		          enumState = ENUM_IDLE;
+		        }
+		      }
+		      else
+		      {
+		        /* .. */
+		      }
+			  break;
+		  default:
+			  break;
+		  }
+	    break;
+
+	  case HOST_USER_DISCONNECTION:
+	    Appli_state = APPLICATION_DISCONNECT;
+	    cdc_ecm_app_state = CDC_ECM_APP_STATE_DISCONNECTED;
+	    break;
+
+	  case HOST_USER_CLASS_ACTIVE:
+	    Appli_state = APPLICATION_READY;
+	    cdc_ecm_app_state = CDC_ECM_APP_STATE_SETUP_STACK;
+	    break;
+
+	  case HOST_USER_CONNECTION:
+	    Appli_state = APPLICATION_START;
+	    break;
+
+	  default:
+	    break;
+	  }
+}
+
+static void USBH_CDC_ECM_UserProcess(USBH_HandleTypeDef *phost)
+{
+	switch(cdc_ecm_app_state)
+	{
+	case CDC_ECM_APP_STATE_LINKED:
+		if(Appli_state == APPLICATION_READY)
+		{
+			CDC_ECM_HandleTypeDef *CDC_Handle = (CDC_ECM_HandleTypeDef *) phost->pActiveClass->pData;
+			if (CDC_Handle->data_notification_state == CDC_ECM_IDLE)
+			{
+				USBH_CDC_ECM_NotificationReceive(&hUSBHost, notification_buffer, NOTIFICATION_BUFFER_SIZE);
+			}
+			if (CDC_Handle->data_rx_state == CDC_ECM_IDLE)
+			{
+				USBH_CDC_ECM_Receive(&hUSBHost, rx_buffer, RX_USB_BUFF);
+			}
+		}
+		break;
+	case CDC_ECM_APP_STATE_SETUP_STACK:
+		if(Appli_state == APPLICATION_READY)
+		{
+		  cdc_ecm_app_state = CDC_ECM_APP_STATE_LINKED;
+		}
+		break;
+	case CDC_ECM_APP_STATE_WAITING:
+		break;
+	case CDC_ECM_APP_STATE_DISCONNECTED:
+		break;
+	default:
+		break;
+	}
+
+	if(Appli_state == APPLICATION_DISCONNECT)
+	{
+		Appli_state = APPLICATION_IDLE;
+		USBH_ErrLog("USB device disconnected !!! \n");
+		cdc_ecm_app_state = CDC_ECM_APP_STATE_IDLE;
+	}
+}

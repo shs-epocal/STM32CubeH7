@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    usbh_cdc-ecms.h
+  * @file    usbh_cdc_ecms.h
   * @author  MCD Application Team
   * @brief   This file contains all the prototypes for the usbh_cdc-ecm.c
   ******************************************************************************
@@ -53,29 +53,24 @@ typedef enum
 }
 CDC_ECM_DataStateTypeDef;
 
-//TODO update state names, add STATE to each one
 typedef enum
 {
-  CDC_ECM_IDLE_STATE = 0U,
-  CDC_ECM_SET_ISOCH_DELAY,
-  CDC_ECM_SET_FEATURE_LTM_ENABLE,
-  CDC_ECM_GET_STRING_DESCRIPTOR,
-  CDC_ECM_SET_ALT_INTERFACE,
+  CDC_ECM_STATE_IDLE = 0U,
+  CDC_ECM_STATE_SET_ALT_INTERFACE,
   CDC_ECM_STATE_SET_ETH_PACKET_FILTER,
-  CDC_ECM_LISTEN_NOTIFICATIONS,
-  CDC_ECM_TRANSFER_DATA,
-  CDC_ECM_CONTINUE_FOREVER,
-  CDC_ECM_ERROR_STATE,
+  CDC_ECM_STATE_GET_STRING_DESCRIPTOR,
+  CDC_ECM_STATE_TRANSFER_DATA,
+  CDC_ECM_STATE_ERROR,
 }
 CDC_ECM_StateTypeDef;
 
 typedef enum
 {
-  CDC_ECM_APP_IDLE = 0,
-  CDC_ECM_APP_LINKED,
-  CDC_ECM_APP_SETUP_STACK,
-  CDC_ECM_APP_WAITING,
-  CDC_ECM_APP_DISCONNECTED,
+  CDC_ECM_APP_STATE_IDLE = 0,
+  CDC_ECM_APP_STATE_LINKED,
+  CDC_ECM_APP_STATE_SETUP_STACK,
+  CDC_ECM_APP_STATE_WAITING,
+  CDC_ECM_APP_STATE_DISCONNECTED,
 }CDC_ECM_APP_State;
 
 typedef struct _EthernetNetworkingFunctionalDescriptor
@@ -114,9 +109,6 @@ typedef struct _CDC_ECM_Process
   CDC_ECM_InterfaceDesc_Typedef      CDC_Desc;
   CDC_ECM_StateTypeDef               state;
   CDC_ECM_StateTypeDef               next_state;
-//  uint8_t                           *eth_stat_data;
-//  uint8_t                           *eth_pwrmgtptrn_data;
-//  uint8_t                           *no_res_buf;
   CDC_ECM_DataStateTypeDef           data_tx_state;
   CDC_ECM_DataStateTypeDef           data_rx_state;
   CDC_ECM_DataStateTypeDef           data_notification_state;

@@ -27,16 +27,11 @@
 */
 
 extern uint8_t *tx_buffer_update;
-extern uint8_t *rx_buffer;
 
 extern cbuf_handle_t tx_circ_buf;
-extern cbuf_handle_t rx_circ_buf;
 
 extern bool flag_tx_data_ready;
 extern uint32_t tx_size_received;
-
-extern bool flag_rx_data_ready;
-extern uint32_t rx_size_received;
 
 uint32_t NotificationInterruptTimer;
 
@@ -298,30 +293,6 @@ static int8_t CDC_ECM_Itf_Process(USBD_HandleTypeDef *pdev)
       to the lwIP for handling
       Call here the TCP/IP background tasks.
     */
-
-	//TODO delete this code, possibly not needed
-	//Process notification at interval time
-	//Interval is number of frames, in FS frame is 1ms
-	  uint32_t time_now = HAL_GetTick();
-	if (time_now - NotificationInterruptTimer >= CDC_ECM_FS_BINTERVAL * 1)
-	{
-		NotificationInterruptTimer = HAL_GetTick();
-
-		if (switch_notification)
-		{
-			(void)USBD_CDC_ECM_SendNotification(&USBD_Device, NETWORK_CONNECTION,
-												  CDC_ECM_NET_CONNECTED, NULL);
-		}
-		else
-		{
-		    (void)USBD_CDC_ECM_SendNotification(&USBD_Device, CONNECTION_SPEED_CHANGE,
-		                                          0U, (uint8_t *)ConnSpeedTab);
-		}
-
-		switch_notification = !switch_notification;
-	}
-
-
   }
 
   return (0);

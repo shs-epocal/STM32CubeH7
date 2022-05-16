@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    usbh_cdc-ecm.c
+  * @file    usbh_cdc_ecm.c
   * @author  MCD Application Team
   * @brief   This file is the CDC Layer Handlers for USB Host CDC class.
   *
@@ -47,7 +47,7 @@ EndBSPDependencies */
 
 /* Includes ------------------------------------------------------------------*/
 #include "usbh_cdc.h"
-#include "usbh_cdc-ecm.h"
+#include "usbh_cdc_ecm.h"
 #include <stdbool.h>
 
 /** @addtogroup USBH_LIB
@@ -103,8 +103,6 @@ EndBSPDependencies */
 /** @defgroup USBH_CDC_CORE_Private_FunctionPrototypes
 * @{
 */
-
-extern bool updatePacketFilter;
 
 //state queue
 typedef struct node {
@@ -334,7 +332,7 @@ static USBH_StatusTypeDef USBH_CDC_ECM_InterfaceInit(USBH_HandleTypeDef *phost)
                 phost->device.address, phost->device.speed, USB_EP_TYPE_BULK,
                 CDC_Handle->DataItf.InEpSize);
 
-  CDC_Handle->state = CDC_ECM_IDLE_STATE;
+  CDC_Handle->state = CDC_ECM_STATE_IDLE;
 
   USBH_LL_SetToggle(phost, CDC_Handle->DataItf.OutPipe, 0U);
   USBH_LL_SetToggle(phost, CDC_Handle->DataItf.InPipe, 0U);
@@ -397,51 +395,9 @@ static USBH_StatusTypeDef USBH_CDC_ECM_ClassRequest(USBH_HandleTypeDef *phost)
   CDC_ECM_HandleTypeDef *CDC_Handle = (CDC_ECM_HandleTypeDef *) phost->pActiveClass->pData;
   USBH_ParseECMDesc(&CDC_Handle->CDC_Desc, &phost->device.CfgDesc, phost->device.CfgDesc_Raw);
 
-  //setting up the queue
-//  enqueue(&state_queue_head, (int)CDC_ECM_SET_ALT_INTERFACE);
-//  enqueue(&eth_packet_queue_head, 12U);
-//  enqueue(&state_queue_head, (int)CDC_ECM_SET_ETH_PACKET_FILTER);
-//  enqueue(&string_descriptor_index_head, CDC_Handle->CDC_Desc.CDC_EthernetNetworkingFuncDesc.iMACAddress);
-//  enqueue(&state_queue_head, (int)CDC_ECM_GET_STRING_DESCRIPTOR);
-//
-//  enqueue(&state_queue_head, (int)CDC_ECM_CONTINUE_FOREVER);
-//  enqueue(&state_queue_head, (int)CDC_ECM_LISTEN_NOTIFICATIONS);
-  CDC_Handle->state = CDC_ECM_SET_ALT_INTERFACE;
+  CDC_Handle->state = CDC_ECM_STATE_SET_ALT_INTERFACE;
   status = USBH_OK;
   return status;
-}
-
-void enqueue(node_t **head, int val) {
-   node_t *new_node = malloc(sizeof(node_t));
-   if (!new_node) return;
-
-   new_node->val = val;
-   new_node->next = *head;
-
-   *head = new_node;
-}
-
-int dequeue(node_t **head) {
-   node_t *current, *prev = NULL;
-   int retval = -1;
-
-   if (*head == NULL) return -1;
-
-   current = *head;
-   while (current->next != NULL) {
-      prev = current;
-      current = current->next;
-   }
-
-   retval = current->val;
-   free(current);
-
-   if (prev)
-      prev->next = NULL;
-   else
-      *head = NULL;
-
-   return retval;
 }
 
 uint32_t NotificationInterruptTimer;
@@ -483,16 +439,51 @@ static USBH_StatusTypeDef USBH_CDC_ECM_Process(USBH_HandleTypeDef *phost)
 
   if ((int)CDC_Handle->state <0)
   {
-	  CDC_Handle->state = CDC_ECM_ERROR_STATE;
+	  CDC_Handle->state = CDC_ECM_STATE_ERROR;
   }
 
   switch (CDC_Handle->state)
   {
-    case CDC_ECM_IDLE_STATE:
+    case CDC_ECM_STATE_IDLE:
       status = USBH_OK;
       break;
 
-    case CDC_ECM_GET_STRING_DESCRIPTOR:
+    case CDC_ECM_STATE_SET_ALT_INTERFACE:
+    	req_status = USBH_SetInterface(phost, 1U, 1U);
+
+    	if (req_status == USBH_OK)
+    	{
+    		CDC_Handle->state = CDC_ECM_STATE_SET_ETH_PACKET_FILTER;
+    	}
+
+    	else
+    	{
+    		if (req_status != USBH_BUSY)
+    		{
+    			CDC_Handle->state = CDC_ECM_STATE_ERROR;
+    		}
+    	}
+    	break;
+
+    case CDC_ECM_STATE_SET_ETH_PACKET_FILTER:
+
+    	CDC_Handle->eth_packet_filter = 12U;
+
+    	req_status = SetEthPacketFilter(phost, CDC_Handle->eth_packet_filter);
+    	if (req_status == USBH_OK)
+    	{
+    		CDC_Handle->state = CDC_ECM_STATE_GET_STRING_DESCRIPTOR;
+    	}
+    	else
+    	{
+    		if (req_status != USBH_BUSY)
+    		{
+    			CDC_Handle->state = CDC_ECM_STATE_ERROR;
+    		}
+    	}
+    	break;
+
+    case CDC_ECM_STATE_GET_STRING_DESCRIPTOR:
     	CDC_Handle->string_desc_index = CDC_Handle->CDC_Desc.CDC_EthernetNetworkingFuncDesc.iMACAddress;
     	CDC_Handle->string_desc_len = 255;
     	req_status = USBH_Get_StringDesc(phost,
@@ -505,7 +496,8 @@ static USBH_StatusTypeDef USBH_CDC_ECM_Process(USBH_HandleTypeDef *phost)
     		if (CDC_Handle->string_desc_index == CDC_Handle->CDC_Desc.CDC_EthernetNetworkingFuncDesc.iMACAddress)
     		{
     			parseMACAddress((char*)CDC_Handle->pRxData, CDC_Handle->mac_address, strlen((char*)CDC_Handle->pRxData));
-    			CDC_Handle->state = CDC_ECM_CONTINUE_FOREVER;
+    			phost->pUser(phost, HOST_USER_CLASS_ACTIVE);
+    			CDC_Handle->state = CDC_ECM_STATE_TRANSFER_DATA;
     		}
 
     	}
@@ -514,47 +506,12 @@ static USBH_StatusTypeDef USBH_CDC_ECM_Process(USBH_HandleTypeDef *phost)
     	{
     		if (req_status != USBH_BUSY)
     		{
-    			CDC_Handle->state = CDC_ECM_ERROR_STATE;
+    			CDC_Handle->state = CDC_ECM_STATE_ERROR;
     		}
     	}
     	break;
 
-    case CDC_ECM_SET_ALT_INTERFACE:
-    	req_status = USBH_SetInterface(phost, 1U, 1U);
-
-    	if (req_status == USBH_OK)
-    	{
-    		CDC_Handle->state = CDC_ECM_STATE_SET_ETH_PACKET_FILTER;
-    	}
-
-    	else
-    	{
-    		if (req_status != USBH_BUSY)
-    		{
-    			CDC_Handle->state = CDC_ECM_ERROR_STATE;
-    		}
-    	}
-    	break;
-
-    case CDC_ECM_STATE_SET_ETH_PACKET_FILTER:
-
-    	CDC_Handle->eth_packet_filter = 12U;
-
-    	req_status = SetEthPacketFilter(phost, CDC_Handle->eth_packet_filter);
-    	if (req_status == USBH_OK)
-    	{
-    		CDC_Handle->state = CDC_ECM_GET_STRING_DESCRIPTOR;
-    	}
-    	else
-    	{
-    		if (req_status != USBH_BUSY)
-    		{
-    			CDC_Handle->state = CDC_ECM_ERROR_STATE;
-    		}
-    	}
-    	break;
-
-	case CDC_ECM_LISTEN_NOTIFICATIONS:
+	case CDC_ECM_STATE_TRANSFER_DATA:
 		//Process notification at interval time
 		//Interval is number of frames, in FS frame is 1ms
 		if (HAL_GetTick() - NotificationInterruptTimer >= CDC_Handle->NotificationInterval * 1)
@@ -567,26 +524,13 @@ static USBH_StatusTypeDef USBH_CDC_ECM_Process(USBH_HandleTypeDef *phost)
 		CDC_ProcessTransmission(phost);
 		break;
 
-    case CDC_ECM_TRANSFER_DATA:
-		CDC_ProcessTransmission(phost);
-		CDC_ProcessReception(phost);
-
-		firstCasePass = true;
-    	status = USBH_OK;
-    	break;
-
-    case CDC_ECM_CONTINUE_FOREVER:
-    	phost->pUser(phost, HOST_USER_CLASS_ACTIVE);
-    	CDC_Handle->state = CDC_ECM_LISTEN_NOTIFICATIONS;
-    	break;
-
-    case CDC_ECM_ERROR_STATE:
+    case CDC_ECM_STATE_ERROR:
       req_status = USBH_ClrFeature(phost, 0x00U);
 
       if (req_status == USBH_OK)
       {
         /*Change the state to waiting*/
-        CDC_Handle->state = CDC_ECM_IDLE_STATE;
+        CDC_Handle->state = CDC_ECM_STATE_IDLE;
       }
       break;
 
@@ -597,161 +541,6 @@ static USBH_StatusTypeDef USBH_CDC_ECM_Process(USBH_HandleTypeDef *phost)
 
   return status;
 }
-//static USBH_StatusTypeDef USBH_CDC_ECM_Process(USBH_HandleTypeDef *phost)
-//{
-//  USBH_StatusTypeDef status = USBH_BUSY;
-//  USBH_StatusTypeDef req_status = USBH_OK;
-//  CDC_ECM_HandleTypeDef *CDC_Handle = (CDC_ECM_HandleTypeDef *) phost->pActiveClass->pData;
-//
-//  if (firstCasePass)
-//  {
-//	  CDC_Handle->state = (CDC_ECM_StateTypeDef)dequeue(&state_queue_head);
-//	  firstCasePass = false;
-//  }
-//
-//  if ((int)CDC_Handle->state <0)
-//  {
-//	  CDC_Handle->state = CDC_ECM_ERROR_STATE;
-//  }
-//
-//  switch (CDC_Handle->state)
-//  {
-//    case CDC_ECM_IDLE_STATE:
-//      status = USBH_OK;
-//      break;
-//
-//    case CDC_ECM_GET_STRING_DESCRIPTOR:
-//    	if (firstPass)
-//    	{
-//        	CDC_Handle->string_desc_index = (uint8_t)dequeue(&string_descriptor_index_head);
-//        	firstPass = false;
-//        	CDC_Handle->string_desc_len = 255;
-//    	}
-//    	req_status = USBH_Get_StringDesc(phost,
-//                CDC_Handle->string_desc_index, CDC_Handle->pRxData,
-//                CDC_Handle->string_desc_len);
-//    	if (req_status == USBH_OK)
-//    	{
-//    		status = USBH_OK;
-//    		firstPass = true;
-//
-//    		if (CDC_Handle->string_desc_index == CDC_Handle->CDC_Desc.CDC_EthernetNetworkingFuncDesc.iMACAddress)
-//    		{
-//    			parseMACAddress((char*)CDC_Handle->pRxData, CDC_Handle->mac_address, strlen((char*)CDC_Handle->pRxData));
-//    		}
-//
-//			firstCasePass = true;
-//    	}
-//
-//    	else
-//    	{
-//    		if (req_status != USBH_BUSY)
-//    		{
-//    			CDC_Handle->state = CDC_ECM_ERROR_STATE;
-//    		}
-//    	}
-//    	break;
-//
-//    case CDC_ECM_SET_ALT_INTERFACE:
-//    	req_status = USBH_SetInterface(phost, 1U, 1U);
-//
-//    	if (req_status == USBH_OK)
-//    	{
-//			firstCasePass = true;
-//    	}
-//
-//    	else
-//    	{
-//    		if (req_status != USBH_BUSY)
-//    		{
-//    			CDC_Handle->state = CDC_ECM_ERROR_STATE;
-//    		}
-//    	}
-//    	break;
-//
-//    case CDC_ECM_SET_ETH_PACKET_FILTER:
-//    	if (firstEthPacketPass)
-//    	{
-//    		CDC_Handle->eth_packet_filter = (uint8_t)dequeue(&eth_packet_queue_head);
-//        	firstEthPacketPass = false;
-//    	}
-//
-//    	req_status = SetEthPacketFilter(phost, CDC_Handle->eth_packet_filter);
-//    	if (req_status == USBH_OK)
-//    	{
-//			firstCasePass = true;
-//			firstEthPacketPass = true;
-//    	}
-//    	else
-//    	{
-//    		if (req_status != USBH_BUSY)
-//    		{
-//    			CDC_Handle->state = CDC_ECM_ERROR_STATE;
-//    		}
-//    	}
-//    	break;
-//
-//	case CDC_ECM_LISTEN_NOTIFICATIONS:
-//		//Process notification at interval time
-//		//Interval is number of frames, in FS frame is 1ms
-//		if (HAL_GetTick() - NotificationInterruptTimer >= CDC_Handle->NotificationInterval * 1)
-//		{
-//			NotificationInterruptTimer = HAL_GetTick();
-//			CDC_ProcessNotificationReception(phost);
-//		}
-//
-////		if (HAL_GetTick() - RxTimer >= 50)
-////		{
-////			RxTimer = HAL_GetTick();
-//			CDC_ProcessReception(phost);
-////		}
-//
-//		CDC_ProcessTransmission(phost);
-//
-//		if (updatePacketFilter)
-//		{
-//			enqueue(&eth_packet_queue_head, 12U);
-//			enqueue(&state_queue_head, (int)CDC_ECM_SET_ETH_PACKET_FILTER);
-//			updatePacketFilter = false;
-//		}
-//		if (continueForEver){
-//			CDC_Handle->state = CDC_ECM_LISTEN_NOTIFICATIONS;
-//			enqueue(&state_queue_head, (int)CDC_Handle->state);
-//		}
-//		firstCasePass = true;
-//		break;
-//
-//    case CDC_ECM_TRANSFER_DATA:
-//		CDC_ProcessTransmission(phost);
-//		CDC_ProcessReception(phost);
-//
-//		firstCasePass = true;
-//    	status = USBH_OK;
-//    	break;
-//
-//    case CDC_ECM_CONTINUE_FOREVER:
-//    	phost->pUser(phost, HOST_USER_CLASS_ACTIVE);
-//    	continueForEver = true;
-//		firstCasePass = true;
-//    	break;
-//
-//    case CDC_ECM_ERROR_STATE:
-//      req_status = USBH_ClrFeature(phost, 0x00U);
-//
-//      if (req_status == USBH_OK)
-//      {
-//        /*Change the state to waiting*/
-//        CDC_Handle->state = CDC_ECM_IDLE_STATE;
-//      }
-//      break;
-//
-//    default:
-//      break;
-//
-//  }
-//
-//  return status;
-//}
 
 /**
   * @brief  USBH_CDC_SOFProcess
@@ -870,14 +659,12 @@ USBH_StatusTypeDef  USBH_CDC_ECM_Transmit(USBH_HandleTypeDef *phost, uint8_t *pb
   USBH_StatusTypeDef Status = USBH_BUSY;
   CDC_ECM_HandleTypeDef *CDC_Handle = (CDC_ECM_HandleTypeDef *) phost->pActiveClass->pData;
 
-  if ((CDC_Handle->state == CDC_ECM_IDLE_STATE)
-		  || (CDC_Handle->state == CDC_ECM_TRANSFER_DATA)
-		  || (CDC_Handle->state == CDC_ECM_LISTEN_NOTIFICATIONS)
-		  || (CDC_Handle->state == CDC_ECM_CONTINUE_FOREVER))
+  if ((CDC_Handle->state == CDC_ECM_STATE_IDLE)
+		  || (CDC_Handle->state == CDC_ECM_STATE_TRANSFER_DATA))
   {
     CDC_Handle->pTxData = pbuff;
     CDC_Handle->TxDataLength = length;
-    CDC_Handle->state = CDC_ECM_LISTEN_NOTIFICATIONS;
+    CDC_Handle->state = CDC_ECM_STATE_TRANSFER_DATA;
     CDC_Handle->data_tx_state = CDC_ECM_SEND_DATA;
     Status = USBH_OK;
   }
@@ -888,7 +675,7 @@ USBH_StatusTypeDef  USBH_CDC_ECM_StopTransmit(USBH_HandleTypeDef *phost)
 {
   USBH_StatusTypeDef Status = USBH_OK;
   CDC_ECM_HandleTypeDef *CDC_Handle = (CDC_ECM_HandleTypeDef *) phost->pActiveClass->pData;
-  CDC_Handle->state = CDC_ECM_LISTEN_NOTIFICATIONS;
+  CDC_Handle->state = CDC_ECM_STATE_TRANSFER_DATA;
   CDC_Handle->data_tx_state = CDC_ECM_STOP;
   Status = USBH_OK;
   return Status;
@@ -905,11 +692,11 @@ USBH_StatusTypeDef  USBH_CDC_ECM_Receive(USBH_HandleTypeDef *phost, uint8_t *pbu
   USBH_StatusTypeDef Status = USBH_BUSY;
   CDC_ECM_HandleTypeDef *CDC_Handle = (CDC_ECM_HandleTypeDef *) phost->pActiveClass->pData;
 
-  if ((CDC_Handle->state == CDC_ECM_LISTEN_NOTIFICATIONS) || (CDC_Handle->state == CDC_ECM_TRANSFER_DATA))
+  if (CDC_Handle->state == CDC_ECM_STATE_TRANSFER_DATA)
   {
     CDC_Handle->pRxData = pbuff;
     CDC_Handle->RxDataLength = length;
-    CDC_Handle->state = CDC_ECM_LISTEN_NOTIFICATIONS;
+    CDC_Handle->state = CDC_ECM_STATE_TRANSFER_DATA;
     CDC_Handle->data_rx_state = CDC_ECM_RECEIVE_DATA;
     Status = USBH_OK;
   }
@@ -920,7 +707,7 @@ USBH_StatusTypeDef  USBH_CDC_ECM_StopReceive(USBH_HandleTypeDef *phost)
 {
   USBH_StatusTypeDef Status = USBH_OK;
   CDC_ECM_HandleTypeDef *CDC_Handle = (CDC_ECM_HandleTypeDef *) phost->pActiveClass->pData;
-  CDC_Handle->state = CDC_ECM_LISTEN_NOTIFICATIONS;
+  CDC_Handle->state = CDC_ECM_STATE_TRANSFER_DATA;
   CDC_Handle->data_rx_state = CDC_ECM_STOP;
   Status = USBH_OK;
   return Status;
@@ -931,11 +718,11 @@ USBH_StatusTypeDef  USBH_CDC_ECM_NotificationReceive(USBH_HandleTypeDef *phost, 
   USBH_StatusTypeDef Status = USBH_BUSY;
   CDC_ECM_HandleTypeDef *CDC_Handle = (CDC_ECM_HandleTypeDef *) phost->pActiveClass->pData;
 
-  if ((CDC_Handle->state == CDC_ECM_LISTEN_NOTIFICATIONS) || (CDC_Handle->state == CDC_ECM_TRANSFER_DATA))
+  if (CDC_Handle->state == CDC_ECM_STATE_TRANSFER_DATA)
   {
     CDC_Handle->pNotificationData = pbuff;
     CDC_Handle->NotificationDataLength = length;
-    CDC_Handle->state = CDC_ECM_LISTEN_NOTIFICATIONS;
+    CDC_Handle->state = CDC_ECM_STATE_TRANSFER_DATA;
     CDC_Handle->data_notification_state = CDC_ECM_RECEIVE_DATA;
     Status = USBH_OK;
   }
@@ -946,7 +733,7 @@ USBH_StatusTypeDef  USBH_CDC_ECM_NotificationStopReceive(USBH_HandleTypeDef *pho
 {
   USBH_StatusTypeDef Status = USBH_OK;
   CDC_ECM_HandleTypeDef *CDC_Handle = (CDC_ECM_HandleTypeDef *) phost->pActiveClass->pData;
-  CDC_Handle->state = CDC_ECM_LISTEN_NOTIFICATIONS;
+  CDC_Handle->state = CDC_ECM_STATE_TRANSFER_DATA;
   CDC_Handle->data_notification_state = CDC_ECM_STOP;
   Status = USBH_OK;
   return Status;
