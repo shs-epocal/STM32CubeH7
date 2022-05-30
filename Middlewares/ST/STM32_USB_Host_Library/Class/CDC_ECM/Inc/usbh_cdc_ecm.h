@@ -29,11 +29,19 @@ extern "C" {
 #include "usbh_core.h"
 #include "usbh_cdc.h"
 
-#define LTM_ENABLE				0x32
-#define SET_ISOCH_DELAY         0x31
 #define HEADER_FUNC_DESC_TYPE 0x00U
 #define UNION_FUNC_DESC_TYPE 0x06U
 #define ECM_FUNC_DESC_TYPE 0x0FU
+
+/* Ethernet Packet Filter bitmap */
+
+#define CDC_ECM_ETH_PKT_FLTR_PKT_TYPE_MULTICAST			0x10U
+#define CDC_ECM_ETH_PKT_FLTR_PKT_TYPE_BROADCAST			0x08U
+#define CDC_ECM_ETH_PKT_FLTR_PKT_TYPE_DIRECTED			0x04U
+#define CDC_ECM_ETH_PKT_FLTR_PKT_TYPE_ALL_MULTICAST		0x02U
+#define CDC_ECM_ETH_PKT_FLTR_PKT_TYPE_PROMISCUOUS		0x01U
+
+#define CDC_ECM_STRING_DESC_MAX_LEN		0xFFU
 
 /* States for CDC State Machine */
 typedef enum
@@ -44,12 +52,6 @@ typedef enum
   CDC_ECM_RECEIVE_DATA,
   CDC_ECM_RECEIVE_DATA_WAIT,
   CDC_ECM_STOP,
-  /*operations that should be performed:
-   * listen to notifications on interrupt endpoint
-   * respond to notifications appropriately
-   * - NETWORK_CONNECTION 00h
-   * - RESPONSE_AVAILABLE 01h
-   * - CONNECTION_SPEED_CHANGE 2Ah*/
 }
 CDC_ECM_DataStateTypeDef;
 

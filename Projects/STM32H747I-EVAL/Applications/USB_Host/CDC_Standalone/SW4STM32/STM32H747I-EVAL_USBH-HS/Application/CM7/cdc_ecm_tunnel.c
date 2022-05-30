@@ -16,8 +16,10 @@
 #define RX_USB_BUFF 64
 #define RX_BUFFER_SIZE ETH_MAX_PACKET_SIZE
 #define TX_BUFFER_SIZE ETH_MAX_PACKET_SIZE
+#define MAC_ADDRESS_STRING_SIZE 12
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
+uint8_t cdc_ecm_mac_string_host_stack[MAC_ADDRESS_STRING_SIZE];
 CDC_ApplicationTypeDef Appli_state = APPLICATION_IDLE;
 CDC_ECM_APP_State cdc_ecm_app_state;
 
@@ -44,9 +46,10 @@ USBH_StatusTypeDef ReqStatus = USBH_BUSY;
 ENUM_StateTypeDef enumState = ENUM_GET_CFG_DESC;
 int config_index = 1; //start at one since config at index zero already gathered
 
+bool update_mac_address = false;
 /* Private function prototypes -----------------------------------------------*/
 static void USBH_UserProcess(USBH_HandleTypeDef * phost, uint8_t id);
-static void USBH_CDC_ECM_UserProcess(USBH_HandleTypeDef *phost);
+static void USBH_CDC_ECM_UserProcess(USBH_HandleTypeDef *phost, USBD_HandleTypeDef *pdev);
 /* Private functions ---------------------------------------------------------*/
 
 void CDC_ECM_Tunnel_Init(USBH_HandleTypeDef *USBH_Host, USBD_HandleTypeDef *USBD_Device)
@@ -67,7 +70,7 @@ void CDC_ECM_Tunnel_Init(USBH_HandleTypeDef *USBH_Host, USBD_HandleTypeDef *USBD
 	USBH_RegisterClass(USBH_Host, USBH_CDC_ECM_CLASS);
 
 	/* Start Device Process */
-	USBD_Start(USBD_Device);
+	//Device Process is started in CDC_ECM_Tunnel_Process after MAC address is collected from USB Host stack
 
 	/* Start Host Process */
 	USBH_Start(USBH_Host);
@@ -82,10 +85,26 @@ void CDC_ECM_Tunnel_Buffer_Init(void)
 
 void CDC_ECM_Tunnel_Process(USBH_HandleTypeDef *USBH_Host, USBD_HandleTypeDef *USBD_Device)
 {
+	if (cdc_ecm_app_state == CDC_ECM_APP_STATE_LINKED && !update_mac_address)
+	{
+		update_mac_address = true;
+
+		CDC_ECM_HandleTypeDef *CDC_Host_Handle = (CDC_ECM_HandleTypeDef *) USBH_Host->pActiveClass->pData;
+
+//		pStrDesc is the MAC address string of the Device stack
+		for (int i = 0; i < MAC_ADDRESS_STRING_SIZE; i ++)
+		{
+			cdc_ecm_mac_string_host_stack[i] = CDC_Host_Handle->mac_address[i];
+		}
+		((USBD_CDC_ECM_ItfTypeDef *)USBD_Device->pUserData[USBD_Device->classId])->pStrDesc = cdc_ecm_mac_string_host_stack;
+
+		USBD_Start(USBD_Device);
+	}
 	/* USB Host Background task */
 	USBH_Process(USBH_Host);
 
-	USBH_CDC_ECM_UserProcess(USBH_Host);
+	USBH_CDC_ECM_UserProcess(USBH_Host, USBD_Device);
+
 	if (full_multipacket)
 	{
 	  int i = 0;
@@ -264,7 +283,7 @@ static void USBH_UserProcess(USBH_HandleTypeDef * phost, uint8_t id)
 	  }
 }
 
-static void USBH_CDC_ECM_UserProcess(USBH_HandleTypeDef *phost)
+static void USBH_CDC_ECM_UserProcess(USBH_HandleTypeDef *phost, USBD_HandleTypeDef *pdev)
 {
 	switch(cdc_ecm_app_state)
 	{

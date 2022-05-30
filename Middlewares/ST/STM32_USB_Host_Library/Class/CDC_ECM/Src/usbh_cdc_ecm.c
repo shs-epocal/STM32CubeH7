@@ -95,6 +95,8 @@ EndBSPDependencies */
 /** @defgroup USBH_CDC_CORE_Private_Variables
 * @{
 */
+uint32_t NotificationInterruptTimer;
+uint32_t RxTimer;
 /**
 * @}
 */
@@ -103,12 +105,6 @@ EndBSPDependencies */
 /** @defgroup USBH_CDC_CORE_Private_FunctionPrototypes
 * @{
 */
-
-//state queue
-typedef struct node {
-   int val;
-   struct node *next;
-} node_t;
 
 static USBH_StatusTypeDef USBH_CDC_ECM_InterfaceInit(USBH_HandleTypeDef *phost);
 
@@ -129,14 +125,10 @@ static void CDC_ProcessReception(USBH_HandleTypeDef *phost);
 
 static void CDC_ProcessNotificationReception(USBH_HandleTypeDef *phost);
 
-static void enqueue(node_t **head, int val);
-static int dequeue(node_t **head);
-
 USBH_ClassTypeDef  CDC_ECM_Class =
 {
   "CDC-ECM",
   USB_CDC_CLASS,
-//  VENDOR_SPECIFIC,
   USBH_CDC_ECM_InterfaceInit,
   USBH_CDC_ECM_InterfaceDeInit,
   USBH_CDC_ECM_ClassRequest,
@@ -145,18 +137,9 @@ USBH_ClassTypeDef  CDC_ECM_Class =
   NULL,
 };
 
-static node_t *state_queue_head = NULL;
-static node_t *string_descriptor_index_head = NULL;
-static node_t *eth_packet_queue_head = NULL;
-
-static bool firstPass = true;
-static bool firstCasePass = true;
-static bool firstEthPacketPass = true;
-static bool continueForEver = false;
 /**
 * @}
 */
-
 
 /** @defgroup USBH_CDC_CORE_Private_Functions
 * @{
@@ -188,7 +171,6 @@ static void USBH_ParseECMDesc(CDC_ECM_InterfaceDesc_Typedef *int_desc, USBH_CfgD
 	  pdesc = USBH_GetNextDesc((uint8_t *)(void *)pdesc, &ptr);
 	  if (pdesc->bDescriptorType   == (CS_INTERFACE))
 	  {
-//		USBH_ParseInterfaceDesc(pif, (uint8_t *)(void *)pdesc);
 		desc_sub_type = *(uint8_t *)((uint8_t *)(void *)pdesc + 2);
 
 		if (desc_sub_type == HEADER_FUNC_DESC_TYPE)
@@ -230,7 +212,6 @@ static void USBH_ParseECMDesc(CDC_ECM_InterfaceDesc_Typedef *int_desc, USBH_CfgD
   */
 static USBH_StatusTypeDef USBH_CDC_ECM_InterfaceInit(USBH_HandleTypeDef *phost)
 {
-
   USBH_StatusTypeDef status;
   uint8_t interface;
   CDC_ECM_HandleTypeDef *CDC_Handle = (CDC_ECM_HandleTypeDef *) phost->pActiveClass->pData;
@@ -340,8 +321,6 @@ static USBH_StatusTypeDef USBH_CDC_ECM_InterfaceInit(USBH_HandleTypeDef *phost)
   return USBH_OK;
 }
 
-
-
 /**
   * @brief  USBH_CDC_InterfaceDeInit
   *         The function DeInit the Pipes used for the CDC class.
@@ -400,28 +379,12 @@ static USBH_StatusTypeDef USBH_CDC_ECM_ClassRequest(USBH_HandleTypeDef *phost)
   return status;
 }
 
-uint32_t NotificationInterruptTimer;
-uint32_t RxTimer;
-
-uint8_t charToHexConverter (char c)
-{
-	return (uint8_t) ((c <= '9') ? (c - '0') : (c - 'A' + 10)) ;
-}
-
 void parseMACAddress (char *mac_string, uint8_t *mac_array, int size)
 {
-	//0 0,1
-	//1 2,3
-	//2 4,5
-	//3 6,7
-	//4 8,9
-	//5 10,11
-	//MAC address comes in as characters, convert to integer
-	for (int i = 0; i < size/2; i++)
+	//MAC address comes in as characters in byte representation
+	for (int i = 0; i < size; i++)
 	{
-		uint8_t a = charToHexConverter(mac_string[i*2]);
-		uint8_t b = charToHexConverter(mac_string[i*2 +1]);
-		mac_array[i] = (uint8_t)(a << 4 | b);
+		mac_array[i] = (uint8_t)mac_string[i];
 	}
 }
 
@@ -467,7 +430,7 @@ static USBH_StatusTypeDef USBH_CDC_ECM_Process(USBH_HandleTypeDef *phost)
 
     case CDC_ECM_STATE_SET_ETH_PACKET_FILTER:
 
-    	CDC_Handle->eth_packet_filter = 12U;
+    	CDC_Handle->eth_packet_filter = CDC_ECM_ETH_PKT_FLTR_PKT_TYPE_BROADCAST | CDC_ECM_ETH_PKT_FLTR_PKT_TYPE_DIRECTED;
 
     	req_status = SetEthPacketFilter(phost, CDC_Handle->eth_packet_filter);
     	if (req_status == USBH_OK)
@@ -485,7 +448,7 @@ static USBH_StatusTypeDef USBH_CDC_ECM_Process(USBH_HandleTypeDef *phost)
 
     case CDC_ECM_STATE_GET_STRING_DESCRIPTOR:
     	CDC_Handle->string_desc_index = CDC_Handle->CDC_Desc.CDC_EthernetNetworkingFuncDesc.iMACAddress;
-    	CDC_Handle->string_desc_len = 255;
+    	CDC_Handle->string_desc_len = CDC_ECM_STRING_DESC_MAX_LEN;
     	req_status = USBH_Get_StringDesc(phost,
                 CDC_Handle->string_desc_index, CDC_Handle->pRxData,
                 CDC_Handle->string_desc_len);
