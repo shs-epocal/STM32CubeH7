@@ -146,6 +146,14 @@ extern uint8_t PrevSelect;
 extern FILELIST_FileTypeDef FileList;
 extern uint8_t *DEMO_SEND_menu[];
 
+typedef struct node {
+    int val;
+    struct node *next;
+} node_t;
+
+void enqueue(node_t **head, int val);
+
+int dequeue(node_t **head);
 /* Exported constants --------------------------------------------------------*/
 #define DEST_IP_ADDR0   ((uint8_t)192U)
 #define DEST_IP_ADDR1   ((uint8_t)168U)

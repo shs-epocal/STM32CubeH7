@@ -207,6 +207,9 @@ static int8_t CDC_ECM_Itf_Control(uint8_t cmd, uint8_t *pbuf, uint16_t length)
   * @param  Len: Number of data received (in bytes)
   * @retval Result of the operation: USBD_OK if all operations are OK else USBD_FAIL
   */
+static uint32_t counting_dropped = 0;
+static uint32_t frames_received = 0;
+extern node_t *tx_buf_queue;
 static int8_t CDC_ECM_Itf_Receive(uint8_t *Buf, uint32_t *Len)
 {
   /* Get the CDC_ECM handler pointer */
@@ -220,6 +223,7 @@ static int8_t CDC_ECM_Itf_Receive(uint8_t *Buf, uint32_t *Len)
   hcdc_cdc_ecm->RxState = 1U;
 
   uint32_t LenStar = *Len;
+  frames_received++;
 
   //when ethernet frame received send to ecm host to transmit
   if (LenStar < TX_BUFFER_SIZE)
@@ -228,14 +232,19 @@ static int8_t CDC_ECM_Itf_Receive(uint8_t *Buf, uint32_t *Len)
 	  //fix based on USBComDriver
 	  if (!flag_tx_data_ready)
 	  {
-		  circular_buf_reset(tx_circ_buf);
+//		  circular_buf_reset(tx_circ_buf);
 		  for (int i = 0; i < LenStar; i++)
 		  {
 			  circular_buf_put(tx_circ_buf, Buf[i]);
 		  }
+		  enqueue(&tx_buf_queue, LenStar);
 		  flag_tx_data_ready = true;
 		  tx_size_received = LenStar;
+	  } else {
+		  counting_dropped++;
 	  }
+  } else {
+	  counting_dropped++;
   }
 
   *Len = 0;
@@ -256,12 +265,14 @@ static int8_t CDC_ECM_Itf_Receive(uint8_t *Buf, uint32_t *Len)
   * @param  Len: Number of data received (in bytes)
   * @retval Result of the operation: USBD_OK if all operations are OK else USBD_FAIL
   */
+extern bool transmit_usbd_cmplt;
 static int8_t CDC_ECM_Itf_TransmitCplt(uint8_t *Buf, uint32_t *Len, uint8_t epnum)
 {
   UNUSED(Buf);
   UNUSED(Len);
   UNUSED(epnum);
 
+  transmit_usbd_cmplt = true;
   return (0);
 }
 

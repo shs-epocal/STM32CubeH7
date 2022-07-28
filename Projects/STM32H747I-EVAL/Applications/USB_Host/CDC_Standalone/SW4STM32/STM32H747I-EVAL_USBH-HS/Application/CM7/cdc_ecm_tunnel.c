@@ -14,8 +14,6 @@
 /* Private define ------------------------------------------------------------*/
 #define NOTIFICATION_BUFFER_SIZE 16
 #define RX_USB_BUFF 64
-#define RX_BUFFER_SIZE ETH_MAX_PACKET_SIZE
-#define TX_BUFFER_SIZE ETH_MAX_PACKET_SIZE
 #define MAC_ADDRESS_STRING_SIZE 12
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
@@ -24,14 +22,15 @@ CDC_ApplicationTypeDef Appli_state = APPLICATION_IDLE;
 CDC_ECM_APP_State cdc_ecm_app_state;
 
 uint8_t notification_buffer[NOTIFICATION_BUFFER_SIZE];
-uint8_t rx_buffer[RX_BUFFER_SIZE];
+uint8_t rx_buffer[ETH_MAX_PACKET_SIZE];
 uint8_t tx_buffer[TX_BUFFER_SIZE];
 
 volatile bool flag_tx_data_ready = false;
 uint32_t tx_size_received = 0;
 
 uint32_t source_array_size = 0;
-uint8_t source_array[RX_BUFFER_SIZE];
+uint8_t source_array[ETH_MAX_PACKET_SIZE];
+//uint8_t source_array[RX_USB_BUFF];
 static volatile uint8_t prev_packet_size = 0;
 
 bool full_multipacket = false;
@@ -39,7 +38,7 @@ bool full_multipacket = false;
 static uint8_t circular_buffer_storage_[RX_BUFFER_SIZE] = {0};
 static cbuf_handle_t host_in_buf = NULL;
 
-uint8_t tx_circ_buf_storage_[RX_BUFFER_SIZE] = {0};
+uint8_t tx_circ_buf_storage_[TX_BUFFER_SIZE] = {0};
 cbuf_handle_t tx_circ_buf = NULL;
 
 USBH_StatusTypeDef ReqStatus = USBH_BUSY;
@@ -47,6 +46,11 @@ ENUM_StateTypeDef enumState = ENUM_GET_CFG_DESC;
 int config_index = 1; //start at one since config at index zero already gathered
 
 bool update_mac_address = false;
+
+bool transmit_usbd_cmplt = true;
+
+node_t *head = NULL;
+node_t *tx_buf_queue = NULL;
 /* Private function prototypes -----------------------------------------------*/
 static void USBH_UserProcess(USBH_HandleTypeDef * phost, uint8_t id);
 static void USBH_CDC_ECM_UserProcess(USBH_HandleTypeDef *phost, USBD_HandleTypeDef *pdev);
@@ -80,8 +84,10 @@ void CDC_ECM_Tunnel_Buffer_Init(void)
 {
 	host_in_buf = circular_buf_init(circular_buffer_storage_, RX_BUFFER_SIZE);
 
-	tx_circ_buf = circular_buf_init(tx_circ_buf_storage_, RX_BUFFER_SIZE);
+	tx_circ_buf = circular_buf_init(tx_circ_buf_storage_, TX_BUFFER_SIZE);
 }
+
+static uint16_t counting_dropped = 0;
 
 void CDC_ECM_Tunnel_Process(USBH_HandleTypeDef *USBH_Host, USBD_HandleTypeDef *USBD_Device)
 {
@@ -97,7 +103,7 @@ void CDC_ECM_Tunnel_Process(USBH_HandleTypeDef *USBH_Host, USBD_HandleTypeDef *U
 			cdc_ecm_mac_string_host_stack[i] = CDC_Host_Handle->mac_address[i];
 		}
 		((USBD_CDC_ECM_ItfTypeDef *)USBD_Device->pUserData[USBD_Device->classId])->pStrDesc = cdc_ecm_mac_string_host_stack;
-
+		transmit_usbd_cmplt = true;
 		USBD_Start(USBD_Device);
 	}
 	/* USB Host Background task */
@@ -105,41 +111,63 @@ void CDC_ECM_Tunnel_Process(USBH_HandleTypeDef *USBH_Host, USBD_HandleTypeDef *U
 
 	USBH_CDC_ECM_UserProcess(USBH_Host, USBD_Device);
 
-	if (full_multipacket)
-	{
-	  int i = 0;
-
-	  while (i < source_array_size)
-	  {
-		  uint8_t data;
-		  circular_buf_get(host_in_buf, &data);
-		  source_array[i] = data;
-		  i++;
-	  }
-	  //when ethernet frame received send to ecm host to transmit
-	  if (USBD_CDC_ECM_SetTxBuffer(USBD_Device, source_array, source_array_size) == USBD_OK)
-	  {
-		  USBD_CDC_ECM_TransmitPacket(USBD_Device);
-	  }
-	  source_array_size = 0;
-	  prev_packet_size = 0;
-	  full_multipacket = false;
-	  circular_buf_reset(host_in_buf);
-	}
-	if (flag_tx_data_ready)
+	int16_t eth_packet_len = dequeue(&tx_buf_queue);
+	if (eth_packet_len > 0)
+//	if (flag_tx_data_ready)
 	{
 	  uint8_t *temp = malloc(tx_size_received);
-	  for (int i = 0; i < tx_size_received; i++)
-	  {
-		  uint8_t data;
-		  circular_buf_get(tx_circ_buf, &data);
-		  temp[i] = data;
-	  }
-	  if(Appli_state == APPLICATION_READY)
-	  {
-		  USBH_CDC_ECM_Transmit(USBH_Host, temp, tx_size_received);
-	  }
-	  flag_tx_data_ready = false;
+//	  int16_t eth_packet_len = dequeue(&tx_buf_queue);
+//	  if (eth_packet_len > 0)
+//	  {
+		  for (int i = 0; i < tx_size_received; i++)
+		  {
+			  uint8_t data;
+			  circular_buf_get(tx_circ_buf, &data);
+			  temp[i] = data;
+		  }
+		  if(Appli_state == APPLICATION_READY)
+		  {
+			  USBH_CDC_ECM_Transmit(USBH_Host, temp, tx_size_received);
+		  } else {
+			  counting_dropped++;
+		  }
+		  flag_tx_data_ready = false;
+//	  }
+	}
+
+	int32_t eth_packet_len_host_buf = dequeue(&head);
+	if (eth_packet_len_host_buf > 0)
+//	if (full_multipacket)
+//	if (transmit_usbd_cmplt)
+	{
+//		int16_t usb_packet_len = dequeue(&head);
+//		if (usb_packet_len > 0)
+//		{
+		  int i = 0;
+
+//		  USBH_UsrLog("%d", usb_packet_len < 64 ? 0 : 1);
+//		  HAL_Delay(1);
+
+		  while (i < eth_packet_len_host_buf)
+//		  while (i < source_array_size)
+		  {
+			  uint8_t data;
+			  circular_buf_get(host_in_buf, &data);
+			  source_array[i] = data;
+			  i++;
+		  }
+		  //when ethernet frame received send to ecm device to transmit
+		  if (USBD_CDC_ECM_SetTxBuffer(USBD_Device, source_array, eth_packet_len_host_buf) == USBD_OK)
+//		  if (USBD_CDC_ECM_SetTxBuffer(USBD_Device, source_array, source_array_size) == USBD_OK)
+		  {
+//			  transmit_usbd_cmplt = false;
+			  USBD_CDC_ECM_TransmitPacket(USBD_Device);
+		  }
+//		  source_array_size = 0;
+//		  prev_packet_size = 0;
+//		  full_multipacket = false;
+//		  circular_buf_reset(host_in_buf);
+//		}
 	}
 }
 
@@ -150,7 +178,7 @@ void USBH_CDC_ReceiveCallback(USBH_HandleTypeDef *phost)
 	BSP_LED_Toggle(LED_GREEN);
 	uint16_t size = USBH_CDC_ECM_GetLastReceivedDataSize(&hUSBHost);
 
-	if (size >= 0){
+	if (size > 0){
 		int i = 0;
 		while (i < size)
 		{
@@ -158,11 +186,15 @@ void USBH_CDC_ReceiveCallback(USBH_HandleTypeDef *phost)
 			source_array_size++;
 			i++;
 		}
+
 		if ((prev_packet_size == 64 && size < 64)
 				|| (prev_packet_size == 64 && size < 1)
 				|| (prev_packet_size < 64 && size < 64))
 		{
-			full_multipacket = true;
+//			full_multipacket = true;
+			enqueue(&head, source_array_size);
+			source_array_size = 0;
+			prev_packet_size = 0;
 		}
 		prev_packet_size = size;
 	}
