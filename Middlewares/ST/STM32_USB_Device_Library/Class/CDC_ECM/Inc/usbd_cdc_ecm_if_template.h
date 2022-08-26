@@ -69,8 +69,11 @@
 #define CDC_ECM_ETH_NBR_PWRFILTERS                              0U
 
 
-#define CDC_ECM_CONNECT_SPEED_UPSTREAM                          0x004C4B40U /* 5Mbps */
-#define CDC_ECM_CONNECT_SPEED_DOWNSTREAM                        0x004C4B40U /* 5Mbps */
+//#define CDC_ECM_CONNECT_SPEED_UPSTREAM                          0x004C4B40U /* 5Mbps */
+//#define CDC_ECM_CONNECT_SPEED_DOWNSTREAM                        0x004C4B40U /* 5Mbps */
+
+#define CDC_ECM_CONNECT_SPEED_UPSTREAM                          0x000F4240U /* 5Mbps */
+#define CDC_ECM_CONNECT_SPEED_DOWNSTREAM                        0x000F4240U /* 5Mbps */
 
 extern USBD_CDC_ECM_ItfTypeDef                          USBD_CDC_ECM_fops;
 

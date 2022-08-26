@@ -79,7 +79,7 @@ extern "C" {
 
 #define CDC_ECM_CONFIG_DESC_SIZ                         79U
 
-#define CDC_ECM_DATA_BUFFER_SIZE                        2000U
+#define CDC_ECM_DATA_BUFFER_SIZE                        4000U
 
 #define CDC_ECM_DATA_HS_IN_PACKET_SIZE                  CDC_ECM_DATA_HS_MAX_PACKET_SIZE
 #define CDC_ECM_DATA_HS_OUT_PACKET_SIZE                 CDC_ECM_DATA_HS_MAX_PACKET_SIZE

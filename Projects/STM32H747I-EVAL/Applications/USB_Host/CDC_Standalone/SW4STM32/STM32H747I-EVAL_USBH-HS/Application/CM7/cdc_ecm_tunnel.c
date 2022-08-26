@@ -88,7 +88,7 @@ void CDC_ECM_Tunnel_Buffer_Init(void)
 }
 
 static uint16_t counting_dropped = 0;
-
+uint8_t temp_main_global_buf[1528];
 void CDC_ECM_Tunnel_Process(USBH_HandleTypeDef *USBH_Host, USBD_HandleTypeDef *USBD_Device)
 {
 	if (cdc_ecm_app_state == CDC_ECM_APP_STATE_LINKED && !update_mac_address)
@@ -115,7 +115,6 @@ void CDC_ECM_Tunnel_Process(USBH_HandleTypeDef *USBH_Host, USBD_HandleTypeDef *U
 	if (eth_packet_len > 0)
 //	if (flag_tx_data_ready)
 	{
-	  uint8_t *temp = malloc(tx_size_received);
 //	  int16_t eth_packet_len = dequeue(&tx_buf_queue);
 //	  if (eth_packet_len > 0)
 //	  {
@@ -123,11 +122,11 @@ void CDC_ECM_Tunnel_Process(USBH_HandleTypeDef *USBH_Host, USBD_HandleTypeDef *U
 		  {
 			  uint8_t data;
 			  circular_buf_get(tx_circ_buf, &data);
-			  temp[i] = data;
+			  temp_main_global_buf[i] = data;
 		  }
 		  if(Appli_state == APPLICATION_READY)
 		  {
-			  USBH_CDC_ECM_Transmit(USBH_Host, temp, tx_size_received);
+			  USBH_CDC_ECM_Transmit(USBH_Host, temp_main_global_buf, tx_size_received);
 		  } else {
 			  counting_dropped++;
 		  }
@@ -174,8 +173,6 @@ void CDC_ECM_Tunnel_Process(USBH_HandleTypeDef *USBH_Host, USBD_HandleTypeDef *U
 void USBH_CDC_ReceiveCallback(USBH_HandleTypeDef *phost)
 {
 	__disable_irq();
-	BSP_LED_Off(LED_ORANGE);
-	BSP_LED_Toggle(LED_GREEN);
 	uint16_t size = USBH_CDC_ECM_GetLastReceivedDataSize(&hUSBHost);
 
 	if (size > 0){
@@ -204,8 +201,7 @@ void USBH_CDC_ReceiveCallback(USBH_HandleTypeDef *phost)
 void USBH_CDC_TransmitCallback(USBH_HandleTypeDef *phost)
 {
 	__disable_irq();
-	BSP_LED_On(LED_ORANGE);
-	USBH_CDC_ECM_Receive(&hUSBHost, rx_buffer, RX_BUFFER_SIZE);
+	USBH_CDC_ECM_StopTransmit(phost);
 	__enable_irq();
 }
 
@@ -315,6 +311,30 @@ static void USBH_UserProcess(USBH_HandleTypeDef * phost, uint8_t id)
 	  }
 }
 
+void USBH_CDC_ECM_ReceiveCallback(USBH_HandleTypeDef *phost)
+{
+	CDC_ECM_HandleTypeDef *CDC_Handle = (CDC_ECM_HandleTypeDef *) phost->pActiveClass->pData;
+	/* First byte is request type */
+	if (CDC_Handle->pNotificationData[0] == CDC_ECM_BMREQUEST_TYPE_ECM){
+		switch (CDC_Handle->pNotificationData[1])
+		{
+		case NETWORK_CONNECTION:
+			if (CDC_Handle->pNotificationData[2] == CDC_ECM_NET_CONNECTED){
+				cdc_ecm_app_state = CDC_ECM_APP_STATE_LINKED;
+			}
+			break;
+		case RESPONSE_AVAILABLE:
+			//for encapsulated responses
+			break;
+		case CONNECTION_SPEED_CHANGE:
+			break;
+		default:
+			break;
+		}
+	}
+}
+
+
 static void USBH_CDC_ECM_UserProcess(USBH_HandleTypeDef *phost, USBD_HandleTypeDef *pdev)
 {
 	switch(cdc_ecm_app_state)
@@ -323,10 +343,6 @@ static void USBH_CDC_ECM_UserProcess(USBH_HandleTypeDef *phost, USBD_HandleTypeD
 		if(Appli_state == APPLICATION_READY)
 		{
 			CDC_ECM_HandleTypeDef *CDC_Handle = (CDC_ECM_HandleTypeDef *) phost->pActiveClass->pData;
-			if (CDC_Handle->data_notification_state == CDC_ECM_IDLE)
-			{
-				USBH_CDC_ECM_NotificationReceive(&hUSBHost, notification_buffer, NOTIFICATION_BUFFER_SIZE);
-			}
 			if (CDC_Handle->data_rx_state == CDC_ECM_IDLE)
 			{
 				USBH_CDC_ECM_Receive(&hUSBHost, rx_buffer, RX_USB_BUFF);
@@ -336,7 +352,11 @@ static void USBH_CDC_ECM_UserProcess(USBH_HandleTypeDef *phost, USBD_HandleTypeD
 	case CDC_ECM_APP_STATE_SETUP_STACK:
 		if(Appli_state == APPLICATION_READY)
 		{
-		  cdc_ecm_app_state = CDC_ECM_APP_STATE_LINKED;
+			CDC_ECM_HandleTypeDef *CDC_Handle = (CDC_ECM_HandleTypeDef *) phost->pActiveClass->pData;
+			if (CDC_Handle->data_notification_state == CDC_ECM_IDLE)
+			{
+				USBH_CDC_ECM_NotificationReceive(&hUSBHost, notification_buffer, NOTIFICATION_BUFFER_SIZE);
+			}
 		}
 		break;
 	case CDC_ECM_APP_STATE_WAITING:

@@ -550,23 +550,23 @@ static uint8_t USBD_CDC_ECM_DataIn(USBD_HandleTypeDef *pdev, uint8_t epnum)
 
   if (epnum == (ECMInEpAdd & 0x7FU))
   {
-    if ((pdev->ep_in[epnum & 0xFU].total_length > 0U) &&
-        ((pdev->ep_in[epnum & 0xFU].total_length % hpcd->IN_ep[epnum & 0xFU].maxpacket) == 0U))
-    {
-      /* Update the packet total length */
-      pdev->ep_in[epnum & 0xFU].total_length = 0U;
-
-      /* Send ZLP */
-      (void)USBD_LL_Transmit(pdev, epnum, NULL, 0U);
-    }
-    else
-    {
+//    if ((pdev->ep_in[epnum & 0xFU].total_length > 0U) &&
+//        ((pdev->ep_in[epnum & 0xFU].total_length % hpcd->IN_ep[epnum & 0xFU].maxpacket) == 0U))
+//    {
+//      /* Update the packet total length */
+//      pdev->ep_in[epnum & 0xFU].total_length = 0U;
+//
+//      /* Send ZLP */
+//      (void)USBD_LL_Transmit(pdev, epnum, NULL, 0U);
+//    }
+//    else
+//    {
       hcdc->TxState = 0U;
       if (((USBD_CDC_ECM_ItfTypeDef *)pdev->pUserData[pdev->classId])->TransmitCplt != NULL)
       {
         ((USBD_CDC_ECM_ItfTypeDef *)pdev->pUserData[pdev->classId])->TransmitCplt(hcdc->TxBuffer, &hcdc->TxLength, epnum);
       }
-    }
+//    }
   }
   else if (epnum == (ECMCmdEpAdd & 0x7FU))
   {

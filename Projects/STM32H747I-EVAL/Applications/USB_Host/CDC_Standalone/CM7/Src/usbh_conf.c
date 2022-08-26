@@ -141,7 +141,7 @@ void HAL_HCD_MspInit(HCD_HandleTypeDef * hhcd)
     __HAL_RCC_USB1_OTG_HS_CLK_ENABLE();
 
     /* Set USBHS Interrupt priority */
-    HAL_NVIC_SetPriority(OTG_HS_IRQn, 15, 0);
+    HAL_NVIC_SetPriority(OTG_HS_IRQn, 14, 0);
 
     /* Enable USBHS Interrupt */
     HAL_NVIC_EnableIRQ(OTG_HS_IRQn);

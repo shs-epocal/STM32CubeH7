@@ -806,7 +806,7 @@ static void CDC_ProcessReception(USBH_HandleTypeDef *phost)
       URB_Status = USBH_LL_GetURBState(phost, CDC_Handle->DataItf.InPipe);
 
       /*Check the status done for reception*/
-      if (URB_Status == USBH_URB_DONE )//|| URB_Status == USBH_URB_IDLE)
+      if (URB_Status == USBH_URB_DONE )
       {
         length = USBH_LL_GetLastXferSize(phost, CDC_Handle->DataItf.InPipe);
 
