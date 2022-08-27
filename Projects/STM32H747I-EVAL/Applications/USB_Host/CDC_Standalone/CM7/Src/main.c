@@ -19,7 +19,7 @@
 /* Includes ------------------------------------------------------------------ */
 #include "main.h"
 
-extern void initialise_monitor_handles(void);
+extern void initialise_monitor_handles(void); //this line is for the console prints
 
 /* Private typedef ----------------------------------------------------------- */
 /* Private define ------------------------------------------------------------ */

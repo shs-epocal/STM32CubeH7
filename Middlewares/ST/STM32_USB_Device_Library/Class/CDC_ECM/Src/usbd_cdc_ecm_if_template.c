@@ -28,10 +28,10 @@
 
 extern uint8_t *tx_buffer_update;
 
-extern cbuf_handle_t tx_circ_buf;
+extern cbuf_handle_t usbd_rx_data_circular_buffer;
 
-extern bool flag_tx_data_ready;
-extern uint32_t tx_size_received;
+extern bool flag_usbd_rx_data_ready;
+extern uint32_t usbd_rx_data_size_received;
 
 uint32_t NotificationInterruptTimer;
 
@@ -209,7 +209,7 @@ static int8_t CDC_ECM_Itf_Control(uint8_t cmd, uint8_t *pbuf, uint16_t length)
   */
 static uint32_t counting_dropped = 0;
 static uint32_t frames_received = 0;
-extern node_t *tx_buf_queue;
+extern node_t *usbd_to_usbh_eth_frame_sizes_queue;
 static int8_t CDC_ECM_Itf_Receive(uint8_t *Buf, uint32_t *Len)
 {
   /* Get the CDC_ECM handler pointer */
@@ -226,20 +226,20 @@ static int8_t CDC_ECM_Itf_Receive(uint8_t *Buf, uint32_t *Len)
   frames_received++;
 
   //when ethernet frame received send to ecm host to transmit
-  if (LenStar < TX_BUFFER_SIZE)
+  if (LenStar < ETH_MAX_PACKET_SIZE)
   {
 	  //TODO race condition exists with the way received packets are handled at the moment
 	  //fix based on USBComDriver
-	  if (!flag_tx_data_ready)
+	  if (!flag_usbd_rx_data_ready)
 	  {
 //		  circular_buf_reset(tx_circ_buf);
 		  for (int i = 0; i < LenStar; i++)
 		  {
-			  circular_buf_put(tx_circ_buf, Buf[i]);
+			  circular_buf_put(usbd_rx_data_circular_buffer, Buf[i]);
 		  }
-		  enqueue(&tx_buf_queue, LenStar);
-		  flag_tx_data_ready = true;
-		  tx_size_received = LenStar;
+		  enqueue(&usbd_to_usbh_eth_frame_sizes_queue, LenStar);
+		  flag_usbd_rx_data_ready = true;
+		  usbd_rx_data_size_received = LenStar;
 	  } else {
 		  counting_dropped++;
 	  }
@@ -265,14 +265,12 @@ static int8_t CDC_ECM_Itf_Receive(uint8_t *Buf, uint32_t *Len)
   * @param  Len: Number of data received (in bytes)
   * @retval Result of the operation: USBD_OK if all operations are OK else USBD_FAIL
   */
-extern bool transmit_usbd_cmplt;
 static int8_t CDC_ECM_Itf_TransmitCplt(uint8_t *Buf, uint32_t *Len, uint8_t epnum)
 {
   UNUSED(Buf);
   UNUSED(Len);
   UNUSED(epnum);
 
-  transmit_usbd_cmplt = true;
   return (0);
 }
 

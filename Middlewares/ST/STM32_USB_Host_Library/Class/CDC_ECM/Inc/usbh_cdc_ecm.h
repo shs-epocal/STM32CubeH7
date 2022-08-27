@@ -139,13 +139,16 @@ extern USBH_ClassTypeDef  CDC_ECM_Class;
 USBH_StatusTypeDef  USBH_CDC_ECM_Transmit(USBH_HandleTypeDef *phost,
                                       uint8_t *pbuff,
                                       uint32_t length);
+USBH_StatusTypeDef  USBH_CDC_ECM_StopTransmit(USBH_HandleTypeDef *phost);
 
 USBH_StatusTypeDef  USBH_CDC_ECM_Receive(USBH_HandleTypeDef *phost,
                                      uint8_t *pbuff,
                                      uint32_t length);
+USBH_StatusTypeDef  USBH_CDC_ECM_StopReceive(USBH_HandleTypeDef *phost);
 USBH_StatusTypeDef USBH_CDC_ECM_NotificationReceive(USBH_HandleTypeDef *phost,
                                      uint8_t *pbuff,
                                      uint32_t length);
+USBH_StatusTypeDef  USBH_CDC_ECM_NotificationStopReceive(USBH_HandleTypeDef *phost);
 
 
 uint16_t            USBH_CDC_ECM_GetLastReceivedDataSize(USBH_HandleTypeDef *phost);

@@ -15,42 +15,46 @@
 #define NOTIFICATION_BUFFER_SIZE 16
 #define RX_USB_BUFF 64
 #define MAC_ADDRESS_STRING_SIZE 12
+
+#define USBH_SPEED_IS_FS
+//#define USBH_SPEED_IS_HS
+
+#ifdef USBH_SPEED_IS_FS
+#define USB_MAX_PACKET_SIZE 64 //Full Speed max packet size
+#else
+#define USB_MAX_PACKET_SIZE 512 //High Speed max packet size
+#endif
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-uint8_t cdc_ecm_mac_string_host_stack[MAC_ADDRESS_STRING_SIZE];
+uint8_t usbh_cdc_ecm_mac_addr_string[MAC_ADDRESS_STRING_SIZE];
 CDC_ApplicationTypeDef Appli_state = APPLICATION_IDLE;
 CDC_ECM_APP_State cdc_ecm_app_state;
 
-uint8_t notification_buffer[NOTIFICATION_BUFFER_SIZE];
-uint8_t rx_buffer[ETH_MAX_PACKET_SIZE];
-uint8_t tx_buffer[TX_BUFFER_SIZE];
+uint8_t usbh_rx_notification_buffer[NOTIFICATION_BUFFER_SIZE];
+uint8_t usbh_rx_data_buffer[ETH_MAX_PACKET_SIZE];
 
-volatile bool flag_tx_data_ready = false;
-uint32_t tx_size_received = 0;
+uint8_t usbd_to_usbh_eth_frame_holding_buffer[ETH_MAX_PACKET_SIZE];
+volatile bool flag_usbd_rx_data_ready = false;
+uint32_t usbd_rx_data_size_received = 0;
 
-uint32_t source_array_size = 0;
-uint8_t source_array[ETH_MAX_PACKET_SIZE];
-//uint8_t source_array[RX_USB_BUFF];
-static volatile uint8_t prev_packet_size = 0;
+uint32_t usbh_to_usbd_eth_frame_holding_buffer_size = 0;
+uint8_t usbh_to_usbd_eth_frame_holding_buffer[ETH_MAX_PACKET_SIZE];
+static volatile uint8_t usbh_in_data_prev_packet_size = 0;
 
-bool full_multipacket = false;
+static uint8_t usbh_rx_data_circular_buffer_storage_[ETH_MAX_PACKET_SIZE] = {0};
+static cbuf_handle_t usbh_rx_data_circular_buffer = NULL;
 
-static uint8_t circular_buffer_storage_[RX_BUFFER_SIZE] = {0};
-static cbuf_handle_t host_in_buf = NULL;
-
-uint8_t tx_circ_buf_storage_[TX_BUFFER_SIZE] = {0};
-cbuf_handle_t tx_circ_buf = NULL;
+uint8_t usbd_rx_data_circular_buffer_storage_[ETH_MAX_PACKET_SIZE] = {0};
+cbuf_handle_t usbd_rx_data_circular_buffer = NULL;
 
 USBH_StatusTypeDef ReqStatus = USBH_BUSY;
 ENUM_StateTypeDef enumState = ENUM_GET_CFG_DESC;
 int config_index = 1; //start at one since config at index zero already gathered
 
-bool update_mac_address = false;
+bool usbd_cdc_ecm_update_mac_address = false;
 
-bool transmit_usbd_cmplt = true;
-
-node_t *head = NULL;
-node_t *tx_buf_queue = NULL;
+node_t *usbh_to_usbd_eth_frame_sizes_queue = NULL;
+node_t *usbd_to_usbh_eth_frame_sizes_queue = NULL;
 /* Private function prototypes -----------------------------------------------*/
 static void USBH_UserProcess(USBH_HandleTypeDef * phost, uint8_t id);
 static void USBH_CDC_ECM_UserProcess(USBH_HandleTypeDef *phost, USBD_HandleTypeDef *pdev);
@@ -82,28 +86,26 @@ void CDC_ECM_Tunnel_Init(USBH_HandleTypeDef *USBH_Host, USBD_HandleTypeDef *USBD
 
 void CDC_ECM_Tunnel_Buffer_Init(void)
 {
-	host_in_buf = circular_buf_init(circular_buffer_storage_, RX_BUFFER_SIZE);
+	usbh_rx_data_circular_buffer = circular_buf_init(usbh_rx_data_circular_buffer_storage_, ETH_MAX_PACKET_SIZE);
 
-	tx_circ_buf = circular_buf_init(tx_circ_buf_storage_, TX_BUFFER_SIZE);
+	usbd_rx_data_circular_buffer = circular_buf_init(usbd_rx_data_circular_buffer_storage_, ETH_MAX_PACKET_SIZE);
 }
 
-static uint16_t counting_dropped = 0;
-uint8_t temp_main_global_buf[1528];
+
 void CDC_ECM_Tunnel_Process(USBH_HandleTypeDef *USBH_Host, USBD_HandleTypeDef *USBD_Device)
 {
-	if (cdc_ecm_app_state == CDC_ECM_APP_STATE_LINKED && !update_mac_address)
+	if (cdc_ecm_app_state == CDC_ECM_APP_STATE_LINKED && !usbd_cdc_ecm_update_mac_address)
 	{
-		update_mac_address = true;
+		usbd_cdc_ecm_update_mac_address = true;
 
 		CDC_ECM_HandleTypeDef *CDC_Host_Handle = (CDC_ECM_HandleTypeDef *) USBH_Host->pActiveClass->pData;
 
-//		pStrDesc is the MAC address string of the Device stack
+		//pStrDesc is the MAC address string of the Device stack
 		for (int i = 0; i < MAC_ADDRESS_STRING_SIZE; i ++)
 		{
-			cdc_ecm_mac_string_host_stack[i] = CDC_Host_Handle->mac_address[i];
+			usbh_cdc_ecm_mac_addr_string[i] = CDC_Host_Handle->mac_address[i];
 		}
-		((USBD_CDC_ECM_ItfTypeDef *)USBD_Device->pUserData[USBD_Device->classId])->pStrDesc = cdc_ecm_mac_string_host_stack;
-		transmit_usbd_cmplt = true;
+		((USBD_CDC_ECM_ItfTypeDef *)USBD_Device->pUserData[USBD_Device->classId])->pStrDesc = usbh_cdc_ecm_mac_addr_string;
 		USBD_Start(USBD_Device);
 	}
 	/* USB Host Background task */
@@ -111,98 +113,72 @@ void CDC_ECM_Tunnel_Process(USBH_HandleTypeDef *USBH_Host, USBD_HandleTypeDef *U
 
 	USBH_CDC_ECM_UserProcess(USBH_Host, USBD_Device);
 
-	int16_t eth_packet_len = dequeue(&tx_buf_queue);
+	int16_t eth_packet_len = dequeue(&usbd_to_usbh_eth_frame_sizes_queue);
 	if (eth_packet_len > 0)
-//	if (flag_tx_data_ready)
 	{
-//	  int16_t eth_packet_len = dequeue(&tx_buf_queue);
-//	  if (eth_packet_len > 0)
-//	  {
-		  for (int i = 0; i < tx_size_received; i++)
+		for (int i = 0; i < usbd_rx_data_size_received; i++)
 		  {
 			  uint8_t data;
-			  circular_buf_get(tx_circ_buf, &data);
-			  temp_main_global_buf[i] = data;
+			  circular_buf_get(usbd_rx_data_circular_buffer, &data);
+			  usbd_to_usbh_eth_frame_holding_buffer[i] = data;
 		  }
 		  if(Appli_state == APPLICATION_READY)
 		  {
-			  USBH_CDC_ECM_Transmit(USBH_Host, temp_main_global_buf, tx_size_received);
-		  } else {
-			  counting_dropped++;
+			  USBH_CDC_ECM_Transmit(USBH_Host, usbd_to_usbh_eth_frame_holding_buffer, usbd_rx_data_size_received);
 		  }
-		  flag_tx_data_ready = false;
-//	  }
+		  flag_usbd_rx_data_ready = false;
 	}
 
-	int32_t eth_packet_len_host_buf = dequeue(&head);
+	int32_t eth_packet_len_host_buf = dequeue(&usbh_to_usbd_eth_frame_sizes_queue);
 	if (eth_packet_len_host_buf > 0)
-//	if (full_multipacket)
-//	if (transmit_usbd_cmplt)
 	{
-//		int16_t usb_packet_len = dequeue(&head);
-//		if (usb_packet_len > 0)
-//		{
 		  int i = 0;
 
-//		  USBH_UsrLog("%d", usb_packet_len < 64 ? 0 : 1);
-//		  HAL_Delay(1);
-
 		  while (i < eth_packet_len_host_buf)
-//		  while (i < source_array_size)
 		  {
 			  uint8_t data;
-			  circular_buf_get(host_in_buf, &data);
-			  source_array[i] = data;
+			  circular_buf_get(usbh_rx_data_circular_buffer, &data);
+			  usbh_to_usbd_eth_frame_holding_buffer[i] = data;
 			  i++;
 		  }
 		  //when ethernet frame received send to ecm device to transmit
-		  if (USBD_CDC_ECM_SetTxBuffer(USBD_Device, source_array, eth_packet_len_host_buf) == USBD_OK)
-//		  if (USBD_CDC_ECM_SetTxBuffer(USBD_Device, source_array, source_array_size) == USBD_OK)
+		  if (USBD_CDC_ECM_SetTxBuffer(USBD_Device, usbh_to_usbd_eth_frame_holding_buffer, eth_packet_len_host_buf) == USBD_OK)
 		  {
-//			  transmit_usbd_cmplt = false;
 			  USBD_CDC_ECM_TransmitPacket(USBD_Device);
 		  }
-//		  source_array_size = 0;
-//		  prev_packet_size = 0;
-//		  full_multipacket = false;
-//		  circular_buf_reset(host_in_buf);
-//		}
 	}
 }
 
 void USBH_CDC_ReceiveCallback(USBH_HandleTypeDef *phost)
 {
-	__disable_irq();
+	HAL_NVIC_DisableIRQ(OTG_HS_IRQn);
 	uint16_t size = USBH_CDC_ECM_GetLastReceivedDataSize(&hUSBHost);
 
 	if (size > 0){
 		int i = 0;
 		while (i < size)
 		{
-			circular_buf_put(host_in_buf, rx_buffer[i]);
-			source_array_size++;
+			circular_buf_put(usbh_rx_data_circular_buffer, usbh_rx_data_buffer[i]);
+			usbh_to_usbd_eth_frame_holding_buffer_size++;
 			i++;
 		}
 
-		if ((prev_packet_size == 64 && size < 64)
-				|| (prev_packet_size == 64 && size < 1)
-				|| (prev_packet_size < 64 && size < 64))
+		if ((usbh_in_data_prev_packet_size == USB_MAX_PACKET_SIZE && size < USB_MAX_PACKET_SIZE)
+				|| (usbh_in_data_prev_packet_size == USB_MAX_PACKET_SIZE && size < 1)
+				|| (usbh_in_data_prev_packet_size < USB_MAX_PACKET_SIZE && size < USB_MAX_PACKET_SIZE))
 		{
-//			full_multipacket = true;
-			enqueue(&head, source_array_size);
-			source_array_size = 0;
-			prev_packet_size = 0;
+			enqueue(&usbh_to_usbd_eth_frame_sizes_queue, usbh_to_usbd_eth_frame_holding_buffer_size);
+			usbh_to_usbd_eth_frame_holding_buffer_size = 0;
+			usbh_in_data_prev_packet_size = 0;
 		}
-		prev_packet_size = size;
+		usbh_in_data_prev_packet_size = size;
 	}
-	__enable_irq();
+	HAL_NVIC_EnableIRQ(OTG_HS_IRQn);
 }
 
 void USBH_CDC_TransmitCallback(USBH_HandleTypeDef *phost)
 {
-	__disable_irq();
 	USBH_CDC_ECM_StopTransmit(phost);
-	__enable_irq();
 }
 
 /**
@@ -295,6 +271,7 @@ static void USBH_UserProcess(USBH_HandleTypeDef * phost, uint8_t id)
 	  case HOST_USER_DISCONNECTION:
 	    Appli_state = APPLICATION_DISCONNECT;
 	    cdc_ecm_app_state = CDC_ECM_APP_STATE_DISCONNECTED;
+	    USBH_ErrLog("USB device disconnected !!! \n");
 	    break;
 
 	  case HOST_USER_CLASS_ACTIVE:
@@ -345,7 +322,7 @@ static void USBH_CDC_ECM_UserProcess(USBH_HandleTypeDef *phost, USBD_HandleTypeD
 			CDC_ECM_HandleTypeDef *CDC_Handle = (CDC_ECM_HandleTypeDef *) phost->pActiveClass->pData;
 			if (CDC_Handle->data_rx_state == CDC_ECM_IDLE)
 			{
-				USBH_CDC_ECM_Receive(&hUSBHost, rx_buffer, RX_USB_BUFF);
+				USBH_CDC_ECM_Receive(&hUSBHost, usbh_rx_data_buffer, RX_USB_BUFF);
 			}
 		}
 		break;
@@ -355,22 +332,20 @@ static void USBH_CDC_ECM_UserProcess(USBH_HandleTypeDef *phost, USBD_HandleTypeD
 			CDC_ECM_HandleTypeDef *CDC_Handle = (CDC_ECM_HandleTypeDef *) phost->pActiveClass->pData;
 			if (CDC_Handle->data_notification_state == CDC_ECM_IDLE)
 			{
-				USBH_CDC_ECM_NotificationReceive(&hUSBHost, notification_buffer, NOTIFICATION_BUFFER_SIZE);
+				USBH_CDC_ECM_NotificationReceive(&hUSBHost, usbh_rx_notification_buffer, NOTIFICATION_BUFFER_SIZE);
 			}
 		}
 		break;
 	case CDC_ECM_APP_STATE_WAITING:
 		break;
 	case CDC_ECM_APP_STATE_DISCONNECTED:
+		USBD_Stop(pdev);
+		USBD_LL_Reset(pdev);
+		usbd_cdc_ecm_update_mac_address = false;
+		flag_usbd_rx_data_ready = false;
+		cdc_ecm_app_state = CDC_ECM_APP_STATE_IDLE;
 		break;
 	default:
 		break;
-	}
-
-	if(Appli_state == APPLICATION_DISCONNECT)
-	{
-		Appli_state = APPLICATION_IDLE;
-		USBH_ErrLog("USB device disconnected !!! \n");
-		cdc_ecm_app_state = CDC_ECM_APP_STATE_IDLE;
 	}
 }
