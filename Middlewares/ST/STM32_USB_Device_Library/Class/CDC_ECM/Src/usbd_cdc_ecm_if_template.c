@@ -33,8 +33,6 @@ extern cbuf_handle_t usbd_rx_data_circular_buffer;
 extern bool flag_usbd_rx_data_ready;
 extern uint32_t usbd_rx_data_size_received;
 
-uint32_t NotificationInterruptTimer;
-
 static uint32_t ConnSpeedTab[2] = {CDC_ECM_CONNECT_SPEED_UPSTREAM,
                                    CDC_ECM_CONNECT_SPEED_DOWNSTREAM
                                   };

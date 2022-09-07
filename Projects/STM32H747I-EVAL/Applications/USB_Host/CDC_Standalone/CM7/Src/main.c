@@ -19,7 +19,7 @@
 /* Includes ------------------------------------------------------------------ */
 #include "main.h"
 
-extern void initialise_monitor_handles(void); //this line is for the console prints
+//extern void initialise_monitor_handles(void); //this line is for the console prints
 
 /* Private typedef ----------------------------------------------------------- */
 /* Private define ------------------------------------------------------------ */
@@ -53,7 +53,7 @@ static void Error_Handler(void);
 int main(void)
 {
   int32_t timeout;
-  initialise_monitor_handles();
+  //initialise_monitor_handles();
   /* This project calls firstly two functions in order to configure MPU feature
   and to enable the CPU Cache, respectively MPU_Config() and CPU_CACHE_Enable()*/
 

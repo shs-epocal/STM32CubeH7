@@ -991,7 +991,7 @@
                 </option>
                 <option>
                     <name>IlinkTrustzoneImportLibraryOut</name>
-                    <state>###Unitialized###</state>
+                    <state>USBH_CDC_import_lib.o</state>
                 </option>
                 <option>
                     <name>OILinkExtraOption</name>
@@ -1406,11 +1406,15 @@
                     <state>$PROJ_DIR$\..\..\..\..\..\..\Drivers\BSP\Components\Common</state>
                     <state>$PROJ_DIR$\..\..\..\..\..\..\Utilities\lcd</state>
                     <state>$PROJ_DIR$\..\..\..\..\..\..\Utilities\Lcd_Trace</state>
-                    <state>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\ST\STM32_USB_Host_Library\Class\CDC-ECM\Inc</state>
+                    <state>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\ST\STM32_USB_Host_Library\Class\CDC_ECM\Inc</state>
                     <state>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\LwIP\src\include</state>
                     <state>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\LwIP\src\apps</state>
                     <state>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\LwIP\system</state>
                     <state>$PROJ_DIR$\..\..\..\..\..\..\Utilities\circular_buffer</state>
+                    <state>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\ST\STM32_USB_Device_Library\Class\CDC_ECM\Inc</state>
+                    <state>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\ST\STM32_USB_Device_Library\Class\CDC\Inc</state>
+                    <state>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\ST\STM32_USB_Device_Library\Core\Inc</state>
+                    <state>$PROJ_DIR$\..\..\..\..\..\..\Drivers\BSP\Components\is42s32800j</state>
                 </option>
                 <option>
                     <name>CCStdIncCheck</name>
@@ -1726,7 +1730,7 @@
             <data>
                 <extensions></extensions>
                 <cmdline></cmdline>
-                <hasPrio>0</hasPrio>
+                <hasPrio>224</hasPrio>
                 <buildSequence>inputOutputBased</buildSequence>
             </data>
         </settings>
@@ -3191,10 +3195,10 @@
                 <configuration>STM32H747I-EVAL_CM4</configuration>
             </excluded>
             <file>
-                <name>$PROJ_DIR$\..\CM7\Src\app_ethernet.c</name>
+                <name>$PROJ_DIR$\..\CM7\Src\cdc_configuration.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\CM7\Src\cdc_configuration.c</name>
+                <name>$PROJ_DIR$\..\SW4STM32\STM32H747I-EVAL_USBH-HS\Application\CM7\cdc_ecm_tunnel.c</name>
             </file>
             <file>
                 <name>$PROJ_DIR$\..\CM7\Src\cdc_receive.c</name>
@@ -3203,28 +3207,22 @@
                 <name>$PROJ_DIR$\..\CM7\Src\cdc_send.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\CM7\Src\ethernetif.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\CM7\Src\explorer.c</name>
-            </file>
-            <file>
-                <name>$PROJ_DIR$\..\..\..\..\..\..\Drivers\BSP\Components\is42s32800j\is42s32800j.c</name>
-            </file>
-            <file>
                 <name>$PROJ_DIR$\..\CM7\Src\main.c</name>
             </file>
             <file>
                 <name>$PROJ_DIR$\..\CM7\Src\menu.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\CM7\Src\sd_diskio.c</name>
-            </file>
-            <file>
                 <name>$PROJ_DIR$\..\CM7\Src\stm32h7xx_it.c</name>
             </file>
             <file>
-                <name>$PROJ_DIR$\..\CM7\Src\tcp_echoclient.c</name>
+                <name>$PROJ_DIR$\..\CM7\Src\usbd_cdc_interface.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\CM7\Src\usbd_conf.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\CM7\Src\usbd_desc.c</name>
             </file>
             <file>
                 <name>$PROJ_DIR$\..\CM7\Src\usbh_conf.c</name>
@@ -3253,6 +3251,9 @@
             <group>
                 <name>Components</name>
                 <file>
+                    <name>$PROJ_DIR$\..\..\..\..\..\..\Drivers\BSP\Components\is42s32800j\is42s32800j.c</name>
+                </file>
+                <file>
                     <name>$PROJ_DIR$\..\..\..\..\..\..\Drivers\BSP\Components\mfxstm32l152\mfxstm32l152.c</name>
                 </file>
                 <file>
@@ -3264,12 +3265,12 @@
                 <file>
                     <name>$PROJ_DIR$\..\..\..\..\..\..\Drivers\BSP\Components\otm8009a\otm8009a_reg.c</name>
                 </file>
-                <file>
-                    <name>$PROJ_DIR$\..\..\..\..\..\..\Drivers\BSP\Components\stmpe811\stmpe811.c</name>
-                </file>
             </group>
             <group>
                 <name>STM32H747I_EVAL</name>
+                <file>
+                    <name>$PROJ_DIR$\..\..\..\..\..\..\Drivers\BSP\STM32H747I-EVAL\stm32h747i_eval.c</name>
+                </file>
                 <file>
                     <name>$PROJ_DIR$\..\..\..\..\..\..\Drivers\BSP\STM32H747I-EVAL\stm32h747i_eval_bus.c</name>
                 </file>
@@ -3365,6 +3366,12 @@
                 </excluded>
             </file>
             <file>
+                <name>$PROJ_DIR$\..\..\..\..\..\..\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_pcd.c</name>
+            </file>
+            <file>
+                <name>$PROJ_DIR$\..\..\..\..\..\..\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_pcd_ex.c</name>
+            </file>
+            <file>
                 <name>$PROJ_DIR$\..\..\..\..\..\..\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_hal_pwr.c</name>
             </file>
             <file>
@@ -3422,9 +3429,6 @@
                 <name>$PROJ_DIR$\..\..\..\..\..\..\Drivers\STM32H7xx_HAL_Driver\Src\stm32h7xx_ll_usb.c</name>
             </file>
         </group>
-        <file>
-            <name>$PROJ_DIR$\..\..\..\..\..\..\Drivers\BSP\STM32H747I-EVAL\stm32h747i_eval.c</name>
-        </file>
     </group>
     <group>
         <name>Middlewares</name>
@@ -3432,134 +3436,35 @@
             <configuration>STM32H747I-EVAL_CM4</configuration>
         </excluded>
         <group>
-            <name>FatFS</name>
+            <name>STM32_USBD_Library</name>
             <group>
-                <name>Core</name>
-                <file>
-                    <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\FatFs\src\diskio.c</name>
-                </file>
-                <file>
-                    <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\FatFs\src\ff.c</name>
-                </file>
-                <file>
-                    <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\FatFs\src\ff_gen_drv.c</name>
-                </file>
-            </group>
-        </group>
-        <group>
-            <name>LwIP</name>
-            <group>
-                <name>Api</name>
-                <file>
-                    <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\LwIP\src\api\api_lib.c</name>
-                </file>
-                <file>
-                    <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\LwIP\src\api\api_msg.c</name>
-                </file>
-                <file>
-                    <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\LwIP\src\api\err.c</name>
-                </file>
-                <file>
-                    <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\LwIP\src\api\netbuf.c</name>
-                </file>
-                <file>
-                    <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\LwIP\src\api\netdb.c</name>
-                </file>
-                <file>
-                    <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\LwIP\src\api\netifapi.c</name>
-                </file>
-                <file>
-                    <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\LwIP\src\api\sockets.c</name>
-                </file>
-                <file>
-                    <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\LwIP\src\api\tcpip.c</name>
-                </file>
-            </group>
-            <group>
-                <name>Core</name>
+                <name>Class</name>
                 <group>
-                    <name>IPv4</name>
+                    <name>CDC</name>
                     <file>
-                        <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\LwIP\src\core\ipv4\autoip.c</name>
-                    </file>
-                    <file>
-                        <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\LwIP\src\core\ipv4\dhcp.c</name>
-                    </file>
-                    <file>
-                        <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\LwIP\src\core\ipv4\etharp.c</name>
-                    </file>
-                    <file>
-                        <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\LwIP\src\core\ipv4\icmp.c</name>
-                    </file>
-                    <file>
-                        <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\LwIP\src\core\ipv4\igmp.c</name>
-                    </file>
-                    <file>
-                        <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\LwIP\src\core\ipv4\ip4.c</name>
-                    </file>
-                    <file>
-                        <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\LwIP\src\core\ipv4\ip4_addr.c</name>
-                    </file>
-                    <file>
-                        <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\LwIP\src\core\ipv4\ip4_frag.c</name>
+                        <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\ST\STM32_USB_Device_Library\Class\CDC\Src\usbd_cdc.c</name>
                     </file>
                 </group>
-                <file>
-                    <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\LwIP\src\core\def.c</name>
-                </file>
-                <file>
-                    <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\LwIP\src\core\dns.c</name>
-                </file>
-                <file>
-                    <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\LwIP\src\core\inet_chksum.c</name>
-                </file>
-                <file>
-                    <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\LwIP\src\core\init.c</name>
-                </file>
-                <file>
-                    <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\LwIP\src\core\ip.c</name>
-                </file>
-                <file>
-                    <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\LwIP\src\core\mem.c</name>
-                </file>
-                <file>
-                    <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\LwIP\src\core\memp.c</name>
-                </file>
-                <file>
-                    <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\LwIP\src\core\netif.c</name>
-                </file>
-                <file>
-                    <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\LwIP\src\core\pbuf.c</name>
-                </file>
-                <file>
-                    <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\LwIP\src\core\raw.c</name>
-                </file>
-                <file>
-                    <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\LwIP\src\core\stats.c</name>
-                </file>
-                <file>
-                    <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\LwIP\src\core\sys.c</name>
-                </file>
-                <file>
-                    <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\LwIP\src\core\tcp.c</name>
-                </file>
-                <file>
-                    <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\LwIP\src\core\tcp_in.c</name>
-                </file>
-                <file>
-                    <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\LwIP\src\core\tcp_out.c</name>
-                </file>
-                <file>
-                    <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\LwIP\src\core\timeouts.c</name>
-                </file>
-                <file>
-                    <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\LwIP\src\core\udp.c</name>
-                </file>
+                <group>
+                    <name>CDC_ECM</name>
+                    <file>
+                        <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\ST\STM32_USB_Device_Library\Class\CDC_ECM\Src\usbd_cdc_ecm.c</name>
+                    </file>
+                    <file>
+                        <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\ST\STM32_USB_Device_Library\Class\CDC_ECM\Src\usbd_cdc_ecm_if_template.c</name>
+                    </file>
+                </group>
             </group>
             <group>
-                <name>Netif</name>
+                <name>Core</name>
                 <file>
-                    <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\Third_Party\LwIP\src\netif\ethernet.c</name>
+                    <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\ST\STM32_USB_Device_Library\Core\Src\usbd_core.c</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\ST\STM32_USB_Device_Library\Core\Src\usbd_ctlreq.c</name>
+                </file>
+                <file>
+                    <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\ST\STM32_USB_Device_Library\Core\Src\usbd_ioreq.c</name>
                 </file>
             </group>
         </group>
@@ -3574,9 +3479,9 @@
                     </file>
                 </group>
                 <group>
-                    <name>CDC-ECM</name>
+                    <name>CDC_ECM</name>
                     <file>
-                        <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\ST\STM32_USB_Host_Library\Class\CDC-ECM\Src\usbh_cdc-ecm.c</name>
+                        <name>$PROJ_DIR$\..\..\..\..\..\..\Middlewares\ST\STM32_USB_Host_Library\Class\CDC_ECM\Src\usbh_cdc_ecm.c</name>
                     </file>
                 </group>
             </group>
